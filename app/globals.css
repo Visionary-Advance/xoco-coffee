@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+body{
+  background-color: #E6D5B8;
+}
+
+@font-face {
+  font-family: 'LibreBaskervilleBold';
+  src: url('/Fonts/LibreBaskerville-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LibreBaskerville';
+  src: url('/Fonts/LibreBaskerville-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.libre-bold{
+font-family: "LibreBaskervilleBold" , sans-serif;
+}
+.libre{
+font-family: "LibreBaskerville" , sans-serif;
+}

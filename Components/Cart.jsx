@@ -1,51 +1,45 @@
 'use client';
 
-import { useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import Button from './Button';
 import Link from 'next/link';
 import EditCartModal from './MenuModal';
 
-export default function Cart({ isOpen, onClose, cartItems, setCartItems }) {
+export default function Cart({ isOpen, onClose, cartItems, setCartItems, getFullItemData }) {
+  const [editingItem, setEditingItem] = useState(null);
 
-  const [editingItem, setEditingItem] = useState(null); // will store the item object 
+  // Remove debug logging since we found the issue
 
-
-  const updateQuantity = (id, size, temp, newQuantity) => {
-    const updatedItems = cartItems
-      .map(item =>
-        item.id === id && item.size === size && item.temperature === temp
-          ? { ...item, quantity: newQuantity }
-          : item
-      )
-      .filter(item => item.quantity > 0);
-
-    localStorage.setItem('cart', JSON.stringify(updatedItems));
-    setCartItems(updatedItems);
-  };
-
-  const updateItemField = (id, size, temp, field, value) => {
+  // ✅ Used for saving updated items (from modal or inline)
+  const updateCartItem = (cartId, updatedData) => {
     const updatedItems = cartItems.map(item =>
-      item.id === id && item.size === size && item.temperature === temp
-        ? { ...item, [field]: value }
-        : item
+      item.cartId === cartId ? { ...item, ...updatedData } : item
     );
     localStorage.setItem('cart', JSON.stringify(updatedItems));
     setCartItems(updatedItems);
+    // Dispatch event to update other components
+    window.dispatchEvent(new Event("cartUpdated"));
   };
 
-  const removeItem = (id, size, temp) => {
+  // ✅ Remove item
+  const removeItem = (cartId, sizeName) => {
     const updated = cartItems.filter(
-      item => !(item.id === id && item.size === size && item.temperature === temp)
+      item =>
+        !(
+          item.cartId === cartId &&
+          item.size.name === sizeName 
+        )
     );
     localStorage.setItem('cart', JSON.stringify(updated));
     setCartItems(updated);
+    // Dispatch event to update other components
+    window.dispatchEvent(new Event("cartUpdated"));
   };
 
-  const calculateSubtotal = () => {
-    return cartItems
+  const calculateSubtotal = () =>
+    cartItems
       .reduce((total, item) => total + item.price * item.quantity, 0)
       .toFixed(2);
-  };
 
   useEffect(() => {
     const handleClickOutside = e => {
@@ -53,7 +47,6 @@ export default function Cart({ isOpen, onClose, cartItems, setCartItems }) {
         onClose();
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
@@ -74,10 +67,10 @@ export default function Cart({ isOpen, onClose, cartItems, setCartItems }) {
         } flex flex-col`}
       >
         <div className="flex justify-between items-center p-4 border-b border-[#d9c3a0]">
-          <h2 className="text-2xl font-semibold text-white">Your Cart</h2>
+          <h2 className="text-2xl font-semibold">Your Cart</h2>
           <button
             onClick={onClose}
-            className="text-white text-3xl font-bold hover:text-[#d9c3a0] transition-colors"
+            className="text-3xl font-bold hover:text-[#d9c3a0]"
           >
             X
           </button>
@@ -91,13 +84,13 @@ export default function Cart({ isOpen, onClose, cartItems, setCartItems }) {
           ) : (
             cartItems.map(item => (
               <div
-                key={`${item.name}-${item.size}-${item.temperature}`}
+                key={item.cartId}
                 className="flex items-start mb-6 pb-6 border-b border-[#d9c3a0] last:border-0"
               >
                 {/* Item Image */}
                 <div className="h-16 w-16 rounded-full overflow-hidden mr-4 bg-[#50311D] flex-shrink-0">
                   <img
-                    src={item.image}
+                    src={item.img}
                     alt={item.name}
                     className="h-full w-full object-cover"
                   />
@@ -107,107 +100,85 @@ export default function Cart({ isOpen, onClose, cartItems, setCartItems }) {
                 <div className="flex-grow space-y-1">
                   <h3 className="text-xl font-medium">{item.name}</h3>
 
-                  <div className="flex gap-2">
-                    <select
-                      value={item.size}
-                      onChange={e =>
-                        updateItemField(
-                          item.id,
-                          item.size,
-                          item.temperature,
-                          'size',
-                          e.target.value
-                        )
-                      }
-                      className="bg-[#6b543f] border border-[#d9c3a0] text-white px-2 py-1 rounded"
-                    >
-                      <option value="S">S</option>
-                      <option value="M">M</option>
-                      <option value="L">L</option>
-                    </select>
+                  <details className="text-sm">
+                    <summary className="cursor-pointer font-medium">Details</summary>
+                    <div className="mt-2 flex flex-col gap-1">
+                      <div>
+                        <strong>Size:</strong> {item.size.name}
+                      </div>
 
-                    <select
-                      value={item.temperature}
-                      onChange={e =>
-                        updateItemField(
-                          item.id,
-                          item.size,
-                          item.temperature,
-                          'temperature',
-                          e.target.value
-                        )
-                      }
-                      className="bg-[#6b543f] border border-[#d9c3a0] text-white px-2 py-1 rounded"
-                    >
-                      <option value="Hot">Hot</option>
-                      <option value="Iced">Iced</option>
-                    </select>
-                  </div>
+                      {item.modifiers?.length > 0 && (
+                        <div className="flex flex-col gap-1">
+                          {item.modifiers
+                            .filter(mod => mod.modifierListName)
+                            .map(mod => (
+                              <div key={mod.id}>
+                                <strong>{mod.modifierListName}:</strong> {mod.name}
+                              </div>
+                            ))}
 
-                  <p className="text-lg">${item.price.toFixed(2)}</p>
-                 
-                 <button
-  onClick={() => setEditingItem(item)}
-  className="text-sm text-[#d9c3a0] hover:underline mr-2"
->
-  Edit
-</button> 
- <button
+                          {item.modifiers.some(mod => !mod.modifierListName) && (
+                            <>
+                              <div>
+                                <strong>Add On(s):</strong>
+                              </div>
+                              {item.modifiers
+                                .filter(mod => !mod.modifierListName)
+                                .map(mod => (
+                                  <div key={mod.id}>{mod.name}</div>
+                                ))}
+                            </>
+                          )}
+                        </div>
+                      )}
+                        {item.specialInstructions && 
+                      <div>
+                        <strong>Notes:</strong> {item.specialInstructions}
+                      </div>
+}
+                    </div>
+                  </details>
+
+                  <button
+                    onClick={() => setEditingItem(item)}
+                    className="text-sm text-[#d9c3a0] hover:underline mr-2"
+                  >
+                    Edit
+                  </button>
+                  <button
                     onClick={() =>
-                      removeItem(item.id, item.size, item.temperature)
+                      removeItem(item.cartId, item.size.name)
                     }
                     className="text-sm text-[#d9c3a0] hover:underline"
                   >
                     Remove
                   </button>
-                  
                 </div>
-                {editingItem && (
-  <EditCartModal
-    item={editingItem}
-    onClose={() => setEditingItem(null)}
-    onSave={(updatedItem) => {
-      // Replace the item in cartItems
-      const updatedCart = cartItems.map(ci => 
-        ci.id === editingItem.id &&
-        ci.editingItem.modifiers &&
-        ci.editingItem.specialInstructions &&
-        ci.size === editingItem.size &&
-        ci.temperature === editingItem.temperature
-          ? { ...ci, ...updatedItem }
-          : ci
-      );
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-      setCartItems(updatedCart);
-      setEditingItem(null);
-    }}
-  />
-)}
 
-
-                {/* Quantity Input */}
+                {/* Price */}
                 <div className="ml-4">
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={e =>
-                      updateQuantity(
-                        item.id,
-                        item.size,
-                        item.temperature,
-                        parseInt(e.target.value) || 1
-                      )
-                    }
-                    className="w-16 px-2 py-1 text-center border border-[#d9c3a0] bg-transparent text-white rounded"
-                    aria-label="Item quantity"
-                  />
+                  <p className="text-lg">${item.price.toFixed(2)}</p>
                 </div>
               </div>
             ))
           )}
         </div>
 
+        {/* Modal for editing */}
+        {editingItem && (
+          <EditCartModal
+            item={getFullItemData ? getFullItemData(editingItem.id) : editingItem}
+            editing={true}
+            existingCartItem={editingItem}
+            onClose={() => setEditingItem(null)}
+            onSave={(updatedItem) => {
+              updateCartItem(editingItem.cartId, updatedItem);
+              setEditingItem(null);
+            }}
+          />
+        )}
+
+        {/* Subtotal + Checkout */}
         <div className="border-t border-[#d9c3a0] p-4 bg-[#6b543f]">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-semibold">Subtotal:</h3>

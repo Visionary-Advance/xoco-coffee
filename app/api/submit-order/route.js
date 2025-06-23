@@ -13,13 +13,13 @@ function isShopOpenServer() {
   const currentDay = now.getDay();
   
   const businessHours = {
-    1: { open: 7, close: 20 },  // Monday
-    2: { open: 7, close: 20 },  // Tuesday
-    3: { open: 7, close: 20 },  // Wednesday
-    4: { open: 7, close: 20 },  // Thursday
-    5: { open: 7, close: 20 },  // Friday
-    6: { open: 8, close: 21 },  // Saturday
-    0: { open: 8, close: 18 }   // Sunday
+    1: { open: 7, close: 20 },
+    2: { open: 7, close: 20 },
+    3: { open: 7, close: 20 },
+    4: { open: 7, close: 20 },
+    5: { open: 7, close: 20 },
+    6: { open: 8, close: 21 },
+    0: { open: 8, close: 18 }
   };
   
   const todayHours = businessHours[currentDay];
@@ -28,7 +28,7 @@ function isShopOpenServer() {
 
 export async function POST(req) {
   try {
-     if (!isShopOpenServer()) {
+    if (!isShopOpenServer()) {
       return new Response(
         JSON.stringify({
           message: "Sorry, we're currently closed and cannot process orders.",
@@ -37,9 +37,10 @@ export async function POST(req) {
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-    const { sourceId, customerName, paymentMethod, orderDetails, locationId } = await req.json();
 
-    console.log("Request data:", { sourceId, customerName, paymentMethod, orderDetails, locationId });
+    const { customerName, paymentMethod, orderDetails, locationId } = await req.json();
+
+    console.log("In-store order request:", { customerName, paymentMethod, orderDetails, locationId });
 
     // Validate required fields
     if (!customerName || !customerName.trim()) {
@@ -50,9 +51,12 @@ export async function POST(req) {
       throw new Error("locationId is required");
     }
 
-    // Validate order details
     if (!orderDetails || !orderDetails.items || orderDetails.items.length === 0) {
       throw new Error("orderDetails.items is required and must not be empty");
+    }
+
+    if (paymentMethod !== 'instore') {
+      throw new Error("This endpoint is only for in-store payment orders");
     }
 
     const client = new SquareClient({
@@ -60,33 +64,29 @@ export async function POST(req) {
       token: process.env.SQUARE_ACCESS_TOKEN,
     });
 
-    // STEP 1: CREATE ORDER IN SQUARE FIRST (enables Dashboard notifications)
-    console.log("Creating order in Square...");
+    console.log("Creating in-store payment order in Square...");
     
     const orderRequest = {
       order: {
         locationId,
         source: {
-          name: paymentMethod === 'online' ? "Website - Online Payment" : "Website" // Shows up in Square Dashboard
+          name: "Website - Pay In-Store"
         },
-        // Add customer details for better visibility
+        state: "OPEN", // Explicitly set order state
         fulfillments: [
           {
             type: "PICKUP",
-            state: "PROPOSED", 
+            state: "PROPOSED",
             pickupDetails: {
               recipient: {
                 displayName: customerName.trim()
               },
-              note: `Customer: ${customerName.trim()}`,
+              note: `Customer: ${customerName.trim()} - Pay in store on pickup`,
               scheduleType: "ASAP",
             }
           }
         ],
         lineItems: orderDetails.items.map(item => {
-          console.log("Processing item:", item);
-          
-          // Validate item
           if (!item.quantity || item.quantity <= 0) {
             throw new Error(`Item quantity must be greater than 0`);
           }
@@ -94,16 +94,12 @@ export async function POST(req) {
             throw new Error(`Item unitPrice must be greater than 0`);
           }
 
-          // Build descriptive name with size, temperature, modifiers, and special instructions
           let itemName = item.name;
-          
-          // Add size and temperature to the name
           const sizeTemp = [item.size?.name, item.temperature].filter(Boolean).join(' ');
           if (sizeTemp) {
             itemName = `${sizeTemp} ${itemName}`;
           }
 
-          // Collect modifiers
           const modifierDescriptions = [];
           if (item.modifiers && Array.isArray(item.modifiers)) {
             item.modifiers.forEach(modifier => {
@@ -113,7 +109,6 @@ export async function POST(req) {
             });
           }
 
-          // Build final item name with modifiers and special instructions
           const additionalDetails = [];
           if (modifierDescriptions.length > 0) {
             additionalDetails.push(...modifierDescriptions);
@@ -125,7 +120,6 @@ export async function POST(req) {
             itemName += ` (${additionalDetails.join(', ')})`;
           }
 
-          // Build comprehensive note for kitchen/staff
           const noteDetails = [];
           if (item.size?.name) noteDetails.push(`Size: ${item.size.name}`);
           if (item.temperature) noteDetails.push(`Temp: ${item.temperature}`);
@@ -137,28 +131,25 @@ export async function POST(req) {
           }
 
           return {
-            name: itemName, // This shows in Square Dashboard notifications
+            name: itemName,
             quantity: item.quantity.toString(),
             itemType: "ITEM",
             basePriceMoney: {
               amount: BigInt(Math.round(item.unitPrice * 100)),
               currency: "USD",
             },
-            // Note for internal use (kitchen, staff)
             note: noteDetails.length > 0 ? noteDetails.join(' | ') : undefined,
-            // Variation name for reporting
             variationName: sizeTemp || undefined,
           };
         }),
-        // Add order-level metadata including customer name and note
         metadata: {
           source: "website",
-          orderType: "pickup",
-          paymentMethod: paymentMethod || "online",
+          orderType: "pickup", 
+          paymentMethod: "instore",
           customerName: customerName.trim(),
         },
-        // Add a note that will be visible in the dashboard
-        orderNote: `Customer: ${customerName.trim()}`,
+        // Add visible order note (correct field name)
+        note: `PAY IN STORE - Customer: ${customerName.trim()}`,
       },
       idempotencyKey: crypto.randomUUID(),
     };
@@ -169,13 +160,11 @@ export async function POST(req) {
     
     console.log("Order response status:", orderResponse.statusCode);
 
-    // Check for order creation errors
     if (orderResponse.errors && orderResponse.errors.length > 0) {
       console.error("Order creation errors:", safeStringify(orderResponse.errors));
       throw new Error(`Order creation failed: ${orderResponse.errors.map(e => e.detail || e.category).join('; ')}`);
     }
 
-    // Extract order data
     const order = orderResponse.result?.order || orderResponse.body?.order || orderResponse.order;
     
     if (!order || !order.id) {
@@ -185,84 +174,89 @@ export async function POST(req) {
 
     const orderId = order.id;
     const totalAmount = order.totalMoney?.amount || order.total_money?.amount;
-    const amount = BigInt(totalAmount || 0);
 
-    console.log("Order created successfully:", { orderId, customerName: customerName.trim(), totalAmount: totalAmount?.toString() });
+    console.log("Order created successfully:", { 
+      orderId, 
+      customerName: customerName.trim(),
+      totalAmount: totalAmount?.toString() 
+    });
 
-    if (!amount || amount <= 0n) {
-      throw new Error(`Invalid or missing total amount in order: ${amount}`);
+    // Add detailed logging to verify order structure
+    console.log("Full order object:", safeStringify(order));
+    console.log("Order fulfillments:", safeStringify(order.fulfillments));
+    console.log("Order metadata:", safeStringify(order.metadata));
+    console.log("Order note:", order.note || "No note found");
+    console.log("Looking for note in different paths...");
+    console.log("order.orderNote:", order.orderNote);
+    console.log("order.notes:", order.notes);
+    console.log("order.metadata:", safeStringify(order.metadata));
+
+    // STEP 2: Try creating a pending cash payment to make it visible in POS
+    try {
+      console.log("Creating pending cash payment for POS visibility...");
+      
+      const pendingPaymentResponse = await client.payments.create({
+        idempotencyKey: crypto.randomUUID(),
+        sourceId: "EXTERNAL", // Use EXTERNAL for manual/cash payments
+        locationId,
+        orderId,
+        amountMoney: {
+          amount: BigInt(totalAmount || 0),
+          currency: "USD",
+        },
+        note: `IN-STORE PAYMENT PENDING - Customer: ${customerName.trim()}`,
+        // Use valid external type
+        externalDetails: {
+          type: "OTHER", // Use OTHER instead of CASH
+          source: "In-store cash payment",
+          sourceId: `instore-${orderId}`,
+        },
+        delayCapture: false, // Don't delay capture
+      });
+
+      if (pendingPaymentResponse.result?.payment) {
+        console.log("Pending payment created successfully:", pendingPaymentResponse.result.payment.id);
+        
+        // This should make the order visible in POS with payment status
+        return Response.json({
+          orderId: orderId,
+          paymentId: pendingPaymentResponse.result.payment.id,
+          customerName: customerName.trim(),
+          status: "AWAITING_PAYMENT",
+          totalAmount: totalAmount?.toString(),
+          currency: "USD",
+          paymentMethod: "instore",
+          orderSummary: itemSummary,
+          message: "Order received! Please pay when you pick up your order.",
+          createdAt: order.created_at || order.createdAt || new Date().toISOString(),
+        });
+      }
+    } catch (paymentError) {
+      console.log("Pending payment creation failed:", paymentError.message);
+      console.log("Payment error details:", safeStringify(paymentError));
+      // Continue with regular order response if payment creation fails
     }
 
-    // STEP 2: PROCESS PAYMENT WITH ORDER ID (links payment to order)
-    console.log("Processing payment for order:", orderId);
-
-    const orderReference = crypto.randomUUID();
-
-    // Build item summary for payment note
     const itemSummary = orderDetails.items.map(item => {
       let name = item.name;
       if (item.size?.name) name = `${item.size.name} ${name}`;
       return `${item.quantity}x ${name}`;
     }).join(', ');
 
-    const paymentResponse = await client.payments.create({
-      idempotencyKey: crypto.randomUUID(),
-      sourceId,
-      locationId,
-      orderId, // 🎯 THIS LINKS THE PAYMENT TO THE ORDER FOR DASHBOARD NOTIFICATIONS
-      referenceId: orderReference,
-      amountMoney: {
-        amount,
-        currency: "USD",
-      },
-      note: `Online Order - ${customerName.trim()}: ${itemSummary}`,
-    });
-
-    console.log("Payment response status:", paymentResponse.statusCode);
-
-    if (paymentResponse.errors && paymentResponse.errors.length > 0) {
-      console.error("Payment creation errors:", safeStringify(paymentResponse.errors));
-      throw new Error(`Payment failed: ${paymentResponse.errors.map(e => e.detail || e.category).join('; ')}`);
-    }
-
-    // Extract payment data
-    const payment = paymentResponse.result?.payment || paymentResponse.body?.payment || paymentResponse.payment;
-
-    if (!payment) {
-      console.error("Could not find payment in response");
-      throw new Error("Payment failed - no payment found in response");
-    }
-
-    console.log("Payment successful:", {
-      paymentId: payment.id,
+    return Response.json({
       orderId: orderId,
       customerName: customerName.trim(),
-      status: payment.status,
-      amount: payment.amount_money?.amount || payment.amountMoney?.amount
-    });
-
-    return Response.json({
-      id: payment.id,
-      status: payment.status,
-      amount: (payment.amount_money?.amount || payment.amountMoney?.amount)?.toString(),
-      currency: payment.amount_money?.currency || payment.amountMoney?.currency || "USD",
-      cardDetails: payment.card_details || payment.cardDetails ? {
-        card: {
-          cardBrand: (payment.card_details?.card || payment.cardDetails?.card)?.card_brand,
-          last4: (payment.card_details?.card || payment.cardDetails?.card)?.last_4 || (payment.card_details?.card || payment.cardDetails?.card)?.last4,
-        }
-      } : null,
-      receiptUrl: payment.receipt_url || payment.receiptUrl,
-      createdAt: payment.created_at || payment.createdAt,
-      orderReference,
-      orderId, // Return the Square order ID
+      status: "OPEN",
+      totalAmount: totalAmount?.toString(),
+      currency: "USD",
+      paymentMethod: "instore",
       orderSummary: itemSummary,
-      customerName: customerName.trim(),
-      paymentMethod: paymentMethod || "online",
+      message: "Order received! Please pay when you pick up your order.",
+      createdAt: order.created_at || order.createdAt || new Date().toISOString(),
     });
 
   } catch (error) {
-    console.error("Payment error:", error);
+    console.error("Order creation error:", error);
     
     const errorResponse = {
       message: error.message,

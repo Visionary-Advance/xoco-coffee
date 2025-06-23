@@ -39,17 +39,26 @@ const OrderSummaryDropdown = ({ cartItems, calculateSubtotal, calculateTip }) =>
                 {cartItems.map(item => (
                   <div key={`${item.id}-${item.size}-${item.temperature}`} className="py-4 flex">
                     <div className="h-16 w-16 rounded-full overflow-hidden mr-4 bg-[#50311D] flex-shrink-0">
-                      <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                      <img src={item.img} alt={item.name} className="h-full w-full object-cover" />
                     </div>
 
                     <div className="flex-grow">
                       <div className="flex justify-between mb-1">
-                        <h3 className="font-medium">{item.title}</h3>
+                        <h3 className="font-medium">{item.name}</h3>
                         <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
-                      <p className="text-sm">
-                        {item.size} • {item.temperature === 'hot' ? 'Hot' : 'Iced'} • Qty: {item.quantity}
-                      </p>
+                     <p className="text-sm">
+  {item.size.name} • {item.temperature === 'hot' ? 'Hot' : 'Iced'} •{" "}
+  {item.modifiers
+    ?.flatMap(group =>
+      (group.modifiers || []).map(mod => mod.name)
+    )
+    .join(', ')}
+</p>
+
+                      {item.specialInstructions && (
+                      <p>Special Instructions: {item.specialInstructions} </p>
+                      )}
                     </div>
                   </div>
                 ))}

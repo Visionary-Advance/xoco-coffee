@@ -11,14 +11,27 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [squareItems, setSquareItems] = useState([]); // Add state for Square items
 
   useEffect(() => {
     const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
     setCartItems(savedCart);
   }, []);
 
-  
-  
+  // Fetch Square items for cart editing
+  useEffect(() => {
+    const fetchSquareItems = async () => {
+      try {
+        const response = await fetch('/api/square-items');
+        const data = await response.json();
+        setSquareItems(data.items || []);
+      } catch (error) {
+        console.error('Error fetching Square items in Header:', error);
+      }
+    };
+
+    fetchSquareItems();
+  }, []);
 
   useEffect(() => {
     const handleCartChange = () => {
@@ -32,11 +45,14 @@ export default function Header() {
       window.removeEventListener('cartUpdated', handleCartChange);
     };
   }, []);
-  
 
   const toggleMenu = () => setMenuOpen(!menuOpen)
-
   const toggleCart = () => setIsCartOpen(!isCartOpen);
+
+  // Function to get full item data by ID for cart editing
+  const getFullItemData = (itemId) => {
+    return squareItems.find(item => item.id === itemId) || null;
+  };
 
   return (
     <header className="bg-[#50311D] text-white relative h-[90px] flex items-center">
@@ -118,11 +134,13 @@ export default function Header() {
           className="w-[80px]"
         />
       </div>
+      
       <Cart
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
         setCartItems={setCartItems}
+        getFullItemData={getFullItemData} // Add the missing prop
       />
     </header>
   )

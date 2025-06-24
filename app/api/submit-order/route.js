@@ -70,7 +70,7 @@ export async function POST(req) {
       order: {
         locationId,
         source: {
-          name: "Website - Pay In-Store"
+          name: "**Pay In Store - Website"
         },
         state: "OPEN", // Explicitly set order state
         fulfillments: [
@@ -147,6 +147,7 @@ export async function POST(req) {
           orderType: "pickup", 
           paymentMethod: "instore",
           customerName: customerName.trim(),
+          paymentStatus:'UNPAID'
         },
         // Add visible order note (correct field name)
         note: `PAY IN STORE - Customer: ${customerName.trim()}`,

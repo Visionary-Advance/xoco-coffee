@@ -45,7 +45,7 @@ export default function Events(){
     </h2>
 
     <p className="text-white mb-4">
-      Come join us at the first-ever June Bloom Market! Located at the Xcaanda Venue in Junction City. We will serve our signature Mexican Mocha, our Signature Breakfast Sandwiches, Lunch Sandwiches, and our in-house baked goods. See less
+      Come join us at the first-ever June Bloom Market! Located at the Xcaanda Venue in Junction City. We will serve our signature Mexican Mocha, our Signature Breakfast Sandwiches, Lunch Sandwiches, and our in-house baked goods.
     </p>
 
     <div>

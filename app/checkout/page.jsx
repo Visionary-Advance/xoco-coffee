@@ -43,6 +43,14 @@ export default function Checkout() {
     loadCart();
   }, []);
 
+  // Reset tip when switching to in-store payment
+  useEffect(() => {
+    if (paymentMethod === 'instore') {
+      setSelectedTip(null);
+      setCustomTip('');
+    }
+  }, [paymentMethod]);
+
   // Calculate subtotal from cart items
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
@@ -51,10 +59,15 @@ export default function Checkout() {
   const subtotal = parseFloat(calculateSubtotal());
   
   const getTipAmount = () => {
+    // Only calculate tip for online payments
+    if (paymentMethod !== 'online') {
+      return 0;
+    }
+    
     if (selectedTip === 'custom') {
       return parseFloat(customTip) || 0;
     }
-    if (selectedTip) {
+    if (selectedTip && subtotal > 0) {
       return +(subtotal * (parseFloat(selectedTip) / 100)).toFixed(2);
     }
     return 0;
@@ -192,6 +205,15 @@ export default function Checkout() {
     setNameError('');
 
     try {
+      console.log("About to send payment request with:", {
+        subtotal: subtotal,
+        tipAmount: getTipAmount(),
+        totalWithTip: totalWithTip,
+        amountWithTipCents: amountWithTipCents,
+        selectedTip: selectedTip,
+        customTip: customTip
+      });
+
       const response = await fetch('/api/submit-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -301,7 +323,7 @@ export default function Checkout() {
                 </>
               )}
               {paymentResult.paymentMethod === 'instore' && (
-                <p className="mb-2"><strong>Payment:</strong> Pay in-store (${totalWithTip})</p>
+                <p className="mb-2"><strong>Payment:</strong> Pay in-store (${subtotal.toFixed(2)})</p>
               )}
               <p className="mb-2">
                 <strong>Payment Method:</strong> {paymentResult.paymentMethod === 'online' ? 'Paid Online' : 'Pay In-Store'}
@@ -442,6 +464,59 @@ export default function Checkout() {
             </div>
           </div>
 
+          {/* Tip Selection - Only for online payments */}
+          {paymentMethod === 'online' && (
+            <div className="libre p-6 rounded-md mb-6">
+              <h2 className="text-center text-2xl font-serif mb-4 text-black">Add a Tip</h2>
+              <div className="grid grid-cols-4 gap-4">
+                {['10', '15', '20'].map(percent => (
+                  <button
+                    key={percent}
+                    onClick={() => {
+                      setSelectedTip(percent);
+                      setCustomTip('');
+                    }}
+                    className={`p-4 rounded-lg shadow text-center transition-colors ${
+                      selectedTip === percent ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="text-2xl font-semibold">{percent}%</div>
+                    <div className="text-sm">${(subtotal * (parseInt(percent) / 100)).toFixed(2)}</div>
+                  </button>
+                ))}
+
+                {/* Custom Option */}
+                <button
+                  onClick={() => setSelectedTip('custom')}
+                  className={`p-4 rounded-lg shadow text-center transition-colors ${
+                    selectedTip === 'custom' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="text-xl font-semibold">Custom</div>
+                </button>
+              </div>
+
+              {/* Custom Input */}
+              {selectedTip === 'custom' && (
+                <div className="mt-4">
+                  <label htmlFor="customTip" className="block mb-1 text-sm text-black font-medium">
+                    Enter Custom Tip Amount
+                  </label>
+                  <input
+                    id="customTip"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={customTip}
+                    onChange={(e) => setCustomTip(e.target.value)}
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#50311D] focus:border-transparent"
+                    placeholder="e.g. 1.50"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Payment Processing Section */}
           <div className="rounded-lg p-6">
             {paymentStatus === 'error' && (
@@ -457,75 +532,108 @@ export default function Checkout() {
               // Online Payment Options
               <>
                 <h2 className="text-3xl libre text-white text-center font-bold mb-4">Payment Options</h2>
-                <PaymentForm
-                  applicationId={appId}
-                  locationId={locationId}
-                  cardTokenizeResponseReceived={handleOnlinePayment}
-                  createPaymentRequest={() => ({
-                    countryCode: "US",
-                    currencyCode: "USD",
-                    total: {
-                      amount: totalWithTip,
-                      label: "Total with Tip",
-                    }
-                  })}
-                >
-                  {/* Digital Wallet Options */}
-                  <div className="space-y-4 mb-6">
-                    <ApplePay 
-                      buttonProps={{
-                        css: {
-                          width: '100%',
-                          height: '48px',
-                          borderRadius: '8px',
-                        }
-                      }}
-                    />
-                    
-                    <GooglePay 
-                      buttonColor="black"
-                      buttonType="long"
-                      buttonSizeMode="fill"
-                      buttonProps={{
-                        css: {
-                          width: '100%',
-                          height: '48px',
-                          borderRadius: '8px',
-                        }
-                      }}
-                    />
-                  </div>
+          <PaymentForm
+  applicationId={appId}
+  locationId={locationId}
+  cardTokenizeResponseReceived={handleOnlinePayment}
+  createPaymentRequest={() => ({
+    countryCode: "US",
+    currencyCode: "USD",
+    total: {
+      amount: totalWithTip,
+      label: getTipAmount() > 0 
+        ? `Total: ${subtotal.toFixed(2)} + ${getTipAmount().toFixed(2)} tip`
+        : `Total: ${subtotal.toFixed(2)}`,
+    }
+  })}
+>
+{paymentMethod === 'online' && getTipAmount() > 0 && (
+  <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6">
+    <div className="flex">
+      <div className="flex-shrink-0">
+        <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+      </div>
+      <div className="ml-3">
+        <h3 className="text-sm font-medium text-amber-800">
+          Payment Total Notice
+        </h3>
+        <div className="mt-2 text-sm text-amber-700">
+          <p className="font-semibold">
+            You will be charged ${totalWithTip} total
+          </p>
+          <p className="mt-1">
+            • Order: ${subtotal.toFixed(2)}
+          </p>
+          <p>
+            • Tip ({selectedTip === 'custom' ? 'Custom' : selectedTip + '%'}): ${getTipAmount().toFixed(2)}
+          </p>
+          <p className="mt-2 text-xs">
+            Note: Google Pay and Apple Pay may initially show only the order amount, but your card will be charged the full total including tip.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  {/* Divider */}
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-gray-50 text-gray-500">Or pay with card</span>
-                    </div>
-                  </div>
+)}
+  {/* Digital Wallet Options */}
+  <div className="space-y-4 mb-6">
+    <ApplePay 
+      buttonProps={{
+        css: {
+          width: '100%',
+          height: '48px',
+          borderRadius: '8px',
+        }
+      }}
+    />
+    
+    <GooglePay 
+      buttonColor="black"
+      buttonType="long"
+      buttonSizeMode="fill"
+      buttonProps={{
+        css: {
+          width: '100%',
+          height: '48px',
+          borderRadius: '8px',
+        }
+      }}
+    />
+  </div>
 
-                  {/* Credit Card Form */}
-                  <CreditCard 
-                    buttonProps={{
-                      isLoading: paymentStatus === 'processing',
-                      css: {
-                        backgroundColor: '#50311D',
-                        color: 'white',
-                        '&:hover': {
-                          backgroundColor: '#3d2416',
-                        },
-                        marginTop: '1rem',
-                        width: '100%',
-                        padding: '0.75rem',
-                        borderRadius: '0.25rem',
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                      }
-                    }}
-                  />
-                </PaymentForm>
+  {/* Divider */}
+  <div className="relative my-6">
+    <div className="absolute inset-0 flex items-center">
+      <div className="w-full border-t border-gray-300"></div>
+    </div>
+    <div className="relative flex justify-center text-sm">
+      <span className="px-2 bg-gray-50 text-gray-500">Or pay with card</span>
+    </div>
+  </div>
+
+  {/* Credit Card Form */}
+  <CreditCard 
+    buttonProps={{
+      isLoading: paymentStatus === 'processing',
+      css: {
+        backgroundColor: '#50311D',
+        color: 'white',
+        '&:hover': {
+          backgroundColor: '#3d2416',
+        },
+        marginTop: '1rem',
+        width: '100%',
+        padding: '0.75rem',
+        borderRadius: '0.25rem',
+        fontSize: '1rem',
+        fontWeight: '600',
+      }
+    }}
+  />
+</PaymentForm>
               </>
             ) : (
               // In-Store Payment Option
@@ -537,7 +645,7 @@ export default function Checkout() {
                     <p>Please pay when you arrive at the store.</p>
                   </div>
                   <div className="text-2xl font-bold text-[#50311D]">
-                    Total: ${totalWithTip}
+                    Total: ${subtotal.toFixed(2)}
                   </div>
                 </div>
                 <button
@@ -549,59 +657,6 @@ export default function Checkout() {
                 </button>
               </div>
             )}
-
-            {/* Tip Selection - Only for online payments */}
-            {paymentMethod === 'online' && (
-              <div className="libre p-6 rounded-md mb-6">
-                <h2 className="text-center text-2xl font-serif mb-4 text-black">Add a Tip</h2>
-                <div className="grid grid-cols-4 gap-4">
-                  {['10', '15', '20'].map(percent => (
-                    <button
-                      key={percent}
-                      onClick={() => {
-                        setSelectedTip(percent);
-                        setCustomTip('');
-                      }}
-                      className={`p-4 rounded-lg shadow text-center transition-colors ${
-                        selectedTip === percent ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="text-2xl font-semibold">{percent}%</div>
-                      <div className="text-sm">${(subtotal * (parseInt(percent) / 100)).toFixed(2)}</div>
-                    </button>
-                  ))}
-
-                  {/* Custom Option */}
-                  <button
-                    onClick={() => setSelectedTip('custom')}
-                    className={`p-4 rounded-lg shadow text-center transition-colors ${
-                      selectedTip === 'custom' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="text-xl font-semibold">Custom</div>
-                  </button>
-                </div>
-
-                {/* Custom Input */}
-                {selectedTip === 'custom' && (
-                  <div className="mt-4">
-                    <label htmlFor="customTip" className="block mb-1 text-sm text-black font-medium">
-                      Enter Custom Tip Amount
-                    </label>
-                    <input
-                      id="customTip"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={customTip}
-                      onChange={(e) => setCustomTip(e.target.value)}
-                      className="w-full p-2 border rounded focus:ring-2 focus:ring-[#50311D] focus:border-transparent"
-                      placeholder="e.g. 1.50"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
@@ -609,9 +664,20 @@ export default function Checkout() {
         
         <div className='lg:w-1/2'>
           <h3 className="text-3xl libre text-white mb-2">
-            Total: ${totalWithTip}
-            {paymentMethod === 'instore' && (
-              <span className="text-lg text-gray-300 block">(Pay in-store)</span>
+            {paymentMethod === 'online' ? (
+              <>
+                Total: ${totalWithTip}
+                {getTipAmount() > 0 && (
+                  <span className="text-lg text-gray-300 block">
+                    (Subtotal: ${subtotal.toFixed(2)} + Tip: ${getTipAmount().toFixed(2)})
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                Total: ${subtotal.toFixed(2)}
+                <span className="text-lg text-gray-300 block">(Pay in-store + tip in person)</span>
+              </>
             )}
           </h3>
         </div>

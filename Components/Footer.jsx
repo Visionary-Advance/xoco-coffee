@@ -1,6 +1,7 @@
 import AutoScrollCarousel from "./AutoScroll";
 import { FaInstagram, FaFacebookF  } from "react-icons/fa";
 import Button from "./Button";
+import Link from "next/link";
 
 export default function Footer(){
     return(
@@ -20,8 +21,12 @@ export default function Footer(){
       <img src="/Img/Xocolate_Coffee_Co_Logo.png" className="mx-auto w-32" />
       <p className="libre">Come and enjoy our coffee and atmosphere</p>
       <div className="flex text-lg justify-center md:justify-start gap-2 mt-3">
+        <Link href={"https://www.facebook.com/people/Xocolate-Coffee-Co/61575288841658/?_rdr"}>
         <span><FaInstagram /></span>
+        </Link>
+        <Link href={"https://www.instagram.com/xocolatecoffeeco/"}>
         <span><FaFacebookF /></span>
+        </Link>
       </div>
     </div>
 
@@ -31,7 +36,7 @@ export default function Footer(){
       <h4 className="text-3xl libre font-bold mb-2">Contact</h4>
       <div className="libre space-y-1.5">
         <p>995 Tyinn St #1,<br /> Eugene, OR 97402</p>
-        <p>555-555-5555</p>
+        <p>541-684-0066</p>
         <p>Info@xocolatecoffeeco.com</p>
       </div>
     </div>
@@ -48,7 +53,9 @@ export default function Footer(){
     {/* Order Section */}
     <div className="bg-[#A5907B] text-white w-8/12 mx-auto shadow-[8px_8px_0_#E6D5B8] p-6 rounded-[30px] libre flex flex-col items-center justify-center">
       <h4 className="text-2xl font-bold mb-3 text-center">Ready to Get Started?</h4>
-      <Button text={"Order Now"} width={"px-1 py-2"}/>
+      <Link href={"/menu"}>
+      <Button text={"Order Now"} width={"px-1 py-2"} color={'bg-white'}/>
+      </Link>
     </div>
 
   </div>

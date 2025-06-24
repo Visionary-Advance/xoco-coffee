@@ -76,7 +76,9 @@ export default function Header() {
 >
   Cart({cartItems.reduce((acc, item) => acc + item.quantity, 0)})
 </motion.span>
+<Link href={"/menu"}>
           <Button color={"bg-white"} text={"Order Now"} width={"px-1 py-2"} />
+          </Link>
         </div>
       </div>
 
@@ -121,7 +123,9 @@ export default function Header() {
             <Link href="/events" onClick={toggleMenu}>Events</Link>
             <Link href="/about" onClick={toggleMenu}>About</Link>
             <Link href="/contact" onClick={toggleMenu}>Contact</Link>
+            <Link href={"/menu"}>
             <Button color={"bg-white"} text="Order Now" />
+            </Link>
           </motion.nav>
         )}
       </AnimatePresence>

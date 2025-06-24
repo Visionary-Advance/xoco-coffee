@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Button from "./Button";
+import Link from "next/link";
 
 
 export default function BakedGoods(){
@@ -71,7 +72,9 @@ export default function BakedGoods(){
 
   </div>
   <div className="mb-5 flex justify-center">
+    <Link href={"/menu"}>
   <Button color={"bg-white"} text={"Order Now"} width={"px-1 py-2"} />
+  </Link>
   </div>
 </div>
 

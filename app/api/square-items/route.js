@@ -19,11 +19,6 @@ export async function GET() {
     const modifierLists = result.filter(obj => obj.type === 'MODIFIER_LIST');
     const modifiers = result.filter(obj => obj.type === 'MODIFIER');
 
-    console.log(`📊 Found ${items.length} items, ${modifierLists.length} modifier lists, ${modifiers.length} modifiers`);
-
-    const safeStringify = (obj) => JSON.stringify(obj, (key, value) =>
-      typeof value === 'bigint' ? value.toString() + 'n' : value, 2);
-
     const categoryMap = {};
     result.forEach(obj => {
       if (obj.type === 'CATEGORY') {

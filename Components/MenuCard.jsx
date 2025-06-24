@@ -6,8 +6,7 @@ import { isShopOpen, getShopStatus } from '../lib/businessHours';
 
 export default function CoffeeCard({ 
   activeCategory, 
-  selectedSizes, 
-  setSelectedSizes, 
+  selectedSizes,  
   coffeeShopItems
 }) {
  
@@ -42,7 +41,7 @@ export default function CoffeeCard({
               </svg>
             </div>
             <div>
-              <p className="font-bold">We're Currently Closed</p>
+              <p className="font-bold">We're Currently Not Accepting Online Orders</p>
               <p className="text-sm">{shopStatus.message}</p>
             </div>
           </div>

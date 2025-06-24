@@ -28,7 +28,7 @@ function isShopOpenServer() {
 
 export async function POST(req) {
   try {
-     if (!isShopOpenServer()) {
+    if (!isShopOpenServer()) {
       return new Response(
         JSON.stringify({
           message: "Sorry, we're currently closed and cannot process orders.",
@@ -37,9 +37,13 @@ export async function POST(req) {
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-    const { sourceId, customerName, paymentMethod, orderDetails, locationId } = await req.json();
+    
+    // EXTRACT THE AMOUNT FROM THE REQUEST (includes tip)
+    const { sourceId, customerName, paymentMethod, orderDetails, locationId, amount } = await req.json();
 
-    console.log("Request data:", { sourceId, customerName, paymentMethod, orderDetails, locationId });
+    console.log("API received amount (should include tip):", amount);
+    console.log("Amount type:", typeof amount);
+    console.log("Request data:", { sourceId, customerName, paymentMethod, orderDetails, locationId, amount });
 
     // Validate required fields
     if (!customerName || !customerName.trim()) {
@@ -55,21 +59,117 @@ export async function POST(req) {
       throw new Error("orderDetails.items is required and must not be empty");
     }
 
+    // Validate amount (should include tip)
+    if (!amount || amount <= 0) {
+      throw new Error("Amount is required and must be greater than 0");
+    }
+
     const client = new SquareClient({
       environment: SquareEnvironment.Sandbox,
       token: process.env.SQUARE_ACCESS_TOKEN,
     });
 
-    // STEP 1: CREATE ORDER IN SQUARE FIRST (enables Dashboard notifications)
-    console.log("Creating order in Square...");
+    // Calculate order total (items only) for comparison
+    const calculatedOrderTotal = orderDetails.items.reduce((total, item) => {
+      return total + (Math.round(item.unitPrice * 100) * item.quantity);
+    }, 0);
+
+    console.log("Calculated order total (items only):", calculatedOrderTotal);
+    console.log("Received payment amount (items + tip):", amount);
+    console.log("Tip amount:", amount - calculatedOrderTotal);
+
+    // STEP 1: CREATE ORDER IN SQUARE WITH TIP AS A LINE ITEM
+    console.log("Creating order in Square with tip as line item...");
     
+    // Build line items array starting with the regular items
+    const lineItems = orderDetails.items.map(item => {
+      console.log("Processing item:", item);
+      
+      // Validate item
+      if (!item.quantity || item.quantity <= 0) {
+        throw new Error(`Item quantity must be greater than 0`);
+      }
+      if (!item.unitPrice || item.unitPrice <= 0) {
+        throw new Error(`Item unitPrice must be greater than 0`);
+      }
+
+      // Build descriptive name with size, temperature, modifiers, and special instructions
+      let itemName = item.name;
+      
+      // Add size and temperature to the name
+      const sizeTemp = [item.size?.name, item.temperature].filter(Boolean).join(' ');
+      if (sizeTemp) {
+        itemName = `${sizeTemp} ${itemName}`;
+      }
+
+      // Collect modifiers
+      const modifierDescriptions = [];
+      if (item.modifiers && Array.isArray(item.modifiers)) {
+        item.modifiers.forEach(modifier => {
+          if (modifier.name) {
+            modifierDescriptions.push(modifier.name);
+          }
+        });
+      }
+
+      // Build final item name with modifiers and special instructions
+      const additionalDetails = [];
+      if (modifierDescriptions.length > 0) {
+        additionalDetails.push(...modifierDescriptions);
+      }
+      if (item.specialInstructions && item.specialInstructions.trim()) {
+        additionalDetails.push(`Note: ${item.specialInstructions.trim()}`);
+      }
+      if (additionalDetails.length > 0) {
+        itemName += ` (${additionalDetails.join(', ')})`;
+      }
+
+      // Build comprehensive note for kitchen/staff
+      const noteDetails = [];
+      if (item.size?.name) noteDetails.push(`Size: ${item.size.name}`);
+      if (item.temperature) noteDetails.push(`Temp: ${item.temperature}`);
+      if (modifierDescriptions.length > 0) {
+        noteDetails.push(`Extras: ${modifierDescriptions.join(', ')}`);
+      }
+      if (item.specialInstructions && item.specialInstructions.trim()) {
+        noteDetails.push(`Instructions: ${item.specialInstructions.trim()}`);
+      }
+
+      return {
+        name: itemName,
+        quantity: item.quantity.toString(),
+        itemType: "ITEM",
+        basePriceMoney: {
+          amount: BigInt(Math.round(item.unitPrice * 100)),
+          currency: "USD",
+        },
+        note: noteDetails.length > 0 ? noteDetails.join(' | ') : undefined,
+        variationName: sizeTemp || undefined,
+      };
+    });
+
+    // ADD TIP AS A LINE ITEM if there's a tip
+    const tipAmount = amount - calculatedOrderTotal;
+    if (tipAmount > 0) {
+      console.log("Adding tip as line item:", tipAmount);
+      lineItems.push({
+        name: "Tip",
+        quantity: "1",
+        itemType: "ITEM",
+        basePriceMoney: {
+          amount: BigInt(tipAmount),
+          currency: "USD",
+        },
+        note: "Customer tip"
+      });
+    }
+
     const orderRequest = {
       order: {
         locationId,
         source: {
-          name: paymentMethod === 'online' ? "Website - Online Payment" : "Website" // Shows up in Square Dashboard
+          name: paymentMethod === 'online' ? "Website - Online Payment" : "Website"
         },
-        // Add customer details for better visibility
         fulfillments: [
           {
             type: "PICKUP",
@@ -83,82 +183,15 @@ export async function POST(req) {
             }
           }
         ],
-        lineItems: orderDetails.items.map(item => {
-          console.log("Processing item:", item);
-          
-          // Validate item
-          if (!item.quantity || item.quantity <= 0) {
-            throw new Error(`Item quantity must be greater than 0`);
-          }
-          if (!item.unitPrice || item.unitPrice <= 0) {
-            throw new Error(`Item unitPrice must be greater than 0`);
-          }
-
-          // Build descriptive name with size, temperature, modifiers, and special instructions
-          let itemName = item.name;
-          
-          // Add size and temperature to the name
-          const sizeTemp = [item.size?.name, item.temperature].filter(Boolean).join(' ');
-          if (sizeTemp) {
-            itemName = `${sizeTemp} ${itemName}`;
-          }
-
-          // Collect modifiers
-          const modifierDescriptions = [];
-          if (item.modifiers && Array.isArray(item.modifiers)) {
-            item.modifiers.forEach(modifier => {
-              if (modifier.name) {
-                modifierDescriptions.push(modifier.name);
-              }
-            });
-          }
-
-          // Build final item name with modifiers and special instructions
-          const additionalDetails = [];
-          if (modifierDescriptions.length > 0) {
-            additionalDetails.push(...modifierDescriptions);
-          }
-          if (item.specialInstructions && item.specialInstructions.trim()) {
-            additionalDetails.push(`Note: ${item.specialInstructions.trim()}`);
-          }
-          if (additionalDetails.length > 0) {
-            itemName += ` (${additionalDetails.join(', ')})`;
-          }
-
-          // Build comprehensive note for kitchen/staff
-          const noteDetails = [];
-          if (item.size?.name) noteDetails.push(`Size: ${item.size.name}`);
-          if (item.temperature) noteDetails.push(`Temp: ${item.temperature}`);
-          if (modifierDescriptions.length > 0) {
-            noteDetails.push(`Extras: ${modifierDescriptions.join(', ')}`);
-          }
-          if (item.specialInstructions && item.specialInstructions.trim()) {
-            noteDetails.push(`Instructions: ${item.specialInstructions.trim()}`);
-          }
-
-          return {
-            name: itemName, // This shows in Square Dashboard notifications
-            quantity: item.quantity.toString(),
-            itemType: "ITEM",
-            basePriceMoney: {
-              amount: BigInt(Math.round(item.unitPrice * 100)),
-              currency: "USD",
-            },
-            // Note for internal use (kitchen, staff)
-            note: noteDetails.length > 0 ? noteDetails.join(' | ') : undefined,
-            // Variation name for reporting
-            variationName: sizeTemp || undefined,
-          };
-        }),
-        // Add order-level metadata including customer name and note
+        lineItems: lineItems, // This now includes tip as a line item
         metadata: {
           source: "website",
           orderType: "pickup",
           paymentMethod: paymentMethod || "online",
           customerName: customerName.trim(),
+          tipAmount: tipAmount.toString(),
         },
-        // Add a note that will be visible in the dashboard
-        orderNote: `Customer: ${customerName.trim()}`,
+        orderNote: `Customer: ${customerName.trim()}${tipAmount > 0 ? ` (includes $${(tipAmount / 100).toFixed(2)} tip)` : ''}`,
       },
       idempotencyKey: crypto.randomUUID(),
     };
@@ -184,38 +217,48 @@ export async function POST(req) {
     }
 
     const orderId = order.id;
-    const totalAmount = order.totalMoney?.amount || order.total_money?.amount;
-    const amount = BigInt(totalAmount || 0);
+    const orderTotalAmount = order.totalMoney?.amount || order.total_money?.amount;
 
-    console.log("Order created successfully:", { orderId, customerName: customerName.trim(), totalAmount: totalAmount?.toString() });
+    console.log("Order created successfully:", { 
+      orderId, 
+      customerName: customerName.trim(), 
+      orderTotal: orderTotalAmount?.toString(),
+      requestedPaymentAmount: amount,
+      calculatedOrderTotal: calculatedOrderTotal,
+      tipAmount: tipAmount
+    });
 
-    if (!amount || amount <= 0n) {
-      throw new Error(`Invalid or missing total amount in order: ${amount}`);
-    }
-
-    // STEP 2: PROCESS PAYMENT WITH ORDER ID (links payment to order)
+    // STEP 2: PROCESS PAYMENT WITH THE ORDER ID
+    // The order total should now match our payment amount since we included tip as a line item
     console.log("Processing payment for order:", orderId);
+    console.log("Order total (should include tip now):", orderTotalAmount?.toString());
+    console.log("Requested payment amount:", amount);
 
     const orderReference = crypto.randomUUID();
 
-    // Build item summary for payment note
+    // Build item summary for payment note (excluding tip line item for readability)
     const itemSummary = orderDetails.items.map(item => {
       let name = item.name;
       if (item.size?.name) name = `${item.size.name} ${name}`;
       return `${item.quantity}x ${name}`;
     }).join(', ');
 
+    const tipNote = tipAmount > 0 ? ` + $${(tipAmount / 100).toFixed(2)} tip` : '';
+
+    // Use the order total amount (which now includes tip) for the payment
+    const paymentAmount = orderTotalAmount || amount;
+
     const paymentResponse = await client.payments.create({
       idempotencyKey: crypto.randomUUID(),
       sourceId,
       locationId,
-      orderId, // 🎯 THIS LINKS THE PAYMENT TO THE ORDER FOR DASHBOARD NOTIFICATIONS
+      orderId, // Links the payment to the order
       referenceId: orderReference,
       amountMoney: {
-        amount,
+        amount: BigInt(paymentAmount), // Use order total (which includes tip)
         currency: "USD",
       },
-      note: `Online Order - ${customerName.trim()}: ${itemSummary}`,
+      note: `Online Order - ${customerName.trim()}: ${itemSummary}${tipNote}`,
     });
 
     console.log("Payment response status:", paymentResponse.statusCode);
@@ -233,18 +276,23 @@ export async function POST(req) {
       throw new Error("Payment failed - no payment found in response");
     }
 
+    const finalPaymentAmount = payment.amount_money?.amount || payment.amountMoney?.amount;
+
     console.log("Payment successful:", {
       paymentId: payment.id,
       orderId: orderId,
       customerName: customerName.trim(),
       status: payment.status,
-      amount: payment.amount_money?.amount || payment.amountMoney?.amount
+      chargedAmount: finalPaymentAmount?.toString(),
+      orderTotal: orderTotalAmount?.toString(),
+      requestedAmount: amount,
+      tipAmount: tipAmount
     });
 
     return Response.json({
       id: payment.id,
       status: payment.status,
-      amount: (payment.amount_money?.amount || payment.amountMoney?.amount)?.toString(),
+      amount: finalPaymentAmount?.toString(),
       currency: payment.amount_money?.currency || payment.amountMoney?.currency || "USD",
       cardDetails: payment.card_details || payment.cardDetails ? {
         card: {
@@ -255,10 +303,13 @@ export async function POST(req) {
       receiptUrl: payment.receipt_url || payment.receiptUrl,
       createdAt: payment.created_at || payment.createdAt,
       orderReference,
-      orderId, // Return the Square order ID
+      orderId,
       orderSummary: itemSummary,
       customerName: customerName.trim(),
       paymentMethod: paymentMethod || "online",
+      orderTotal: (calculatedOrderTotal / 100).toFixed(2), // Items only (for display)
+      tipAmount: (tipAmount / 100).toFixed(2), // Tip amount in dollars (for display)
+      totalCharged: (Number(finalPaymentAmount) / 100).toFixed(2), // Total charged (for display)
     });
 
   } catch (error) {

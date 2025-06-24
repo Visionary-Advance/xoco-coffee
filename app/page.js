@@ -195,7 +195,9 @@ export default function Home() {
   </div>
 </div>
     <div className="z-50">
+      <Link href={"/menu"}>
   <Button color={"bg-white"} text={"Order Now"} width={"px-1 py-2"} />
+  </Link>
   </div>
   </div>
   

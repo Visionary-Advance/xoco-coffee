@@ -40,8 +40,7 @@ export async function POST(req) {
 
     const { customerName, paymentMethod, orderDetails, locationId } = await req.json();
 
-    console.log("In-store order request:", { customerName, paymentMethod, orderDetails, locationId });
-
+   
     // Validate required fields
     if (!customerName || !customerName.trim()) {
       throw new Error("Customer name is required");
@@ -64,7 +63,8 @@ export async function POST(req) {
       token: process.env.SQUARE_ACCESS_TOKEN,
     });
 
-    console.log("Creating in-store payment order in Square...");
+   
+
     
     const orderRequest = {
       order: {
@@ -155,11 +155,11 @@ export async function POST(req) {
       idempotencyKey: crypto.randomUUID(),
     };
 
-    console.log("Order request:", safeStringify(orderRequest));
+   
 
     const orderResponse = await client.orders.create(orderRequest);
     
-    console.log("Order response status:", orderResponse.statusCode);
+   
 
     if (orderResponse.errors && orderResponse.errors.length > 0) {
       console.error("Order creation errors:", safeStringify(orderResponse.errors));
@@ -176,25 +176,12 @@ export async function POST(req) {
     const orderId = order.id;
     const totalAmount = order.totalMoney?.amount || order.total_money?.amount;
 
-    console.log("Order created successfully:", { 
-      orderId, 
-      customerName: customerName.trim(),
-      totalAmount: totalAmount?.toString() 
-    });
-
-    // Add detailed logging to verify order structure
-    console.log("Full order object:", safeStringify(order));
-    console.log("Order fulfillments:", safeStringify(order.fulfillments));
-    console.log("Order metadata:", safeStringify(order.metadata));
-    console.log("Order note:", order.note || "No note found");
-    console.log("Looking for note in different paths...");
-    console.log("order.orderNote:", order.orderNote);
-    console.log("order.notes:", order.notes);
-    console.log("order.metadata:", safeStringify(order.metadata));
+   
 
     // STEP 2: Try creating a pending cash payment to make it visible in POS
     try {
-      console.log("Creating pending cash payment for POS visibility...");
+     
+
       
       const pendingPaymentResponse = await client.payments.create({
         idempotencyKey: crypto.randomUUID(),
@@ -216,7 +203,7 @@ export async function POST(req) {
       });
 
       if (pendingPaymentResponse.result?.payment) {
-        console.log("Pending payment created successfully:", pendingPaymentResponse.result.payment.id);
+       
         
         // This should make the order visible in POS with payment status
         return Response.json({

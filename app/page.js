@@ -7,6 +7,7 @@ import Button from "@/Components/Button";
 import BakedGoods from "@/Components/BakedGoods";
 import Link from "next/link";
 
+
 export default function Home() {
 
   
@@ -68,6 +69,8 @@ export default function Home() {
       <section className="">
         <TalveraBanner />
       </section>
+
+  
 
       <section className="mt-10 flex flex-col relative libre gap-1">
         {/* First Row: Image Left, Text Right */}

@@ -41,9 +41,7 @@ export async function POST(req) {
     // EXTRACT THE AMOUNT FROM THE REQUEST (includes tip)
     const { sourceId, customerName, paymentMethod, orderDetails, locationId, amount } = await req.json();
 
-    console.log("API received amount (should include tip):", amount);
-    console.log("Amount type:", typeof amount);
-    console.log("Request data:", { sourceId, customerName, paymentMethod, orderDetails, locationId, amount });
+  
 
     // Validate required fields
     if (!customerName || !customerName.trim()) {
@@ -74,16 +72,13 @@ export async function POST(req) {
       return total + (Math.round(item.unitPrice * 100) * item.quantity);
     }, 0);
 
-    console.log("Calculated order total (items only):", calculatedOrderTotal);
-    console.log("Received payment amount (items + tip):", amount);
-    console.log("Tip amount:", amount - calculatedOrderTotal);
 
     // STEP 1: CREATE ORDER IN SQUARE WITH TIP AS A LINE ITEM
-    console.log("Creating order in Square with tip as line item...");
+   
     
     // Build line items array starting with the regular items
     const lineItems = orderDetails.items.map(item => {
-      console.log("Processing item:", item);
+     
       
       // Validate item
       if (!item.quantity || item.quantity <= 0) {
@@ -151,7 +146,7 @@ export async function POST(req) {
     // ADD TIP AS A LINE ITEM if there's a tip
     const tipAmount = amount - calculatedOrderTotal;
     if (tipAmount > 0) {
-      console.log("Adding tip as line item:", tipAmount);
+     
       lineItems.push({
         name: "Tip",
         quantity: "1",
@@ -196,11 +191,11 @@ export async function POST(req) {
       idempotencyKey: crypto.randomUUID(),
     };
 
-    console.log("Order request:", safeStringify(orderRequest));
+  
 
     const orderResponse = await client.orders.create(orderRequest);
     
-    console.log("Order response status:", orderResponse.statusCode);
+    
 
     // Check for order creation errors
     if (orderResponse.errors && orderResponse.errors.length > 0) {
@@ -219,20 +214,7 @@ export async function POST(req) {
     const orderId = order.id;
     const orderTotalAmount = order.totalMoney?.amount || order.total_money?.amount;
 
-    console.log("Order created successfully:", { 
-      orderId, 
-      customerName: customerName.trim(), 
-      orderTotal: orderTotalAmount?.toString(),
-      requestedPaymentAmount: amount,
-      calculatedOrderTotal: calculatedOrderTotal,
-      tipAmount: tipAmount
-    });
-
-    // STEP 2: PROCESS PAYMENT WITH THE ORDER ID
-    // The order total should now match our payment amount since we included tip as a line item
-    console.log("Processing payment for order:", orderId);
-    console.log("Order total (should include tip now):", orderTotalAmount?.toString());
-    console.log("Requested payment amount:", amount);
+   
 
     const orderReference = crypto.randomUUID();
 
@@ -261,7 +243,7 @@ export async function POST(req) {
       note: `Online Order - ${customerName.trim()}: ${itemSummary}${tipNote}`,
     });
 
-    console.log("Payment response status:", paymentResponse.statusCode);
+    
 
     if (paymentResponse.errors && paymentResponse.errors.length > 0) {
       console.error("Payment creation errors:", safeStringify(paymentResponse.errors));
@@ -278,16 +260,7 @@ export async function POST(req) {
 
     const finalPaymentAmount = payment.amount_money?.amount || payment.amountMoney?.amount;
 
-    console.log("Payment successful:", {
-      paymentId: payment.id,
-      orderId: orderId,
-      customerName: customerName.trim(),
-      status: payment.status,
-      chargedAmount: finalPaymentAmount?.toString(),
-      orderTotal: orderTotalAmount?.toString(),
-      requestedAmount: amount,
-      tipAmount: tipAmount
-    });
+   
 
     return Response.json({
       id: payment.id,

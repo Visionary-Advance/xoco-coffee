@@ -63,7 +63,7 @@ export async function GET() {
         modifiers: modifierObjects
       };
 
-      console.log(`📝 ModifierList "${name}" has ${modifierObjects.length} modifiers`);
+     
     }
 
     const imageMap = {};
@@ -93,10 +93,8 @@ export async function GET() {
         .map(info => modifierMap[info.modifierListId])
         .filter(Boolean);
 
-      const itemName = item.itemData?.name || 'Unnamed Item';
-      console.log(`\n🍽️  Item: ${itemName}`);
-      console.log(`   📦 Variations:`, variations);
-      console.log(`   📋 Has ${attachedModifierLists.length} modifier lists`);
+      // const itemName = item.itemData?.name || 'Unnamed Item';
+    
       attachedModifierLists.forEach((modList, i) => {
         console.log(`   [${i}] "${modList.name}" with ${modList.modifiers.length} modifiers`);
       });
@@ -114,10 +112,7 @@ export async function GET() {
       };
     });
 
-    if (filteredItems.length > 0) {
-      console.log('\n🎯 Final structure check for first item:');
-      console.log(JSON.stringify(filteredItems[0], null, 2));
-    }
+   
 
     return NextResponse.json({ items: filteredItems });
 

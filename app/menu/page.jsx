@@ -5,7 +5,7 @@ export default function Menu(){
 
 
   return(
-    <div className= "w-full h-screen place-items-center align-middle">
+    <div className= "w-full h-lvh  place-items-center text-4xl font-bold translate-y-1/2 align-middle">
     <h1 className= "">ONLINE ORDERING COMING SOON</h1>
 
     </div>

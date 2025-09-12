@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
+import { libreBaskerville, libreBaskervilleBold } from "@/lib/fonts";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -153,7 +154,7 @@ const structuredData = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${libreBaskerville.variable} ${libreBaskervilleBold.variable}`}>
       <head>
         {/* Structured Data for Local Business */}
         <script

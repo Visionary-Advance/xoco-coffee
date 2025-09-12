@@ -6,6 +6,7 @@ import { BiSolidCoffeeBean } from "react-icons/bi";
 import Button from "@/Components/Button";
 import BakedGoods from "@/Components/BakedGoods";
 import Link from "next/link";
+import SquareOAuthButton from "@/Components/SquareOAuthButton";
 
 
 export default function Home() {
@@ -69,6 +70,8 @@ export default function Home() {
       <section className="">
         <TalveraBanner />
       </section>
+
+      <SquareOAuthButton />
 
   
 

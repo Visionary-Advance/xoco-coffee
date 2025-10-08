@@ -1,5 +1,6 @@
 import { SquareClient, SquareEnvironment } from "square";
 import crypto from "crypto";
+import { getSquareAuth } from "@/lib/square-auth";
 
 function safeStringify(obj) {
   return JSON.stringify(obj, (_, value) =>
@@ -58,12 +59,19 @@ export async function POST(req) {
       throw new Error("This endpoint is only for in-store payment orders");
     }
 
-    const client = new SquareClient({
-      environment: SquareEnvironment.Sandbox,
-      token: process.env.SQUARE_ACCESS_TOKEN,
-    });
+    // Get auth from Supabase
+console.log('🔐 Getting Square credentials from Supabase...');
+const auth = await getSquareAuth();
 
-   
+const client = new SquareClient({
+  environment: process.env.SQUARE_ENVIRONMENT === 'production' 
+    ? SquareEnvironment.Production 
+    : SquareEnvironment.Sandbox,
+  token: auth.accessToken,
+});
+
+// Use location from database if not provided
+const finalLocationId = locationId || auth.locationId;
 
     
     const orderRequest = {

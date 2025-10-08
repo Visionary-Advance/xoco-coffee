@@ -62,10 +62,20 @@ export async function POST(req) {
       throw new Error("Amount is required and must be greater than 0");
     }
 
+      // Get auth from Supabase
+    console.log('🔐 Getting Square credentials from Supabase...');
+    const auth = await getSquareAuth();
+    
     const client = new SquareClient({
-      environment: SquareEnvironment.Sandbox,
-      token: process.env.SQUARE_ACCESS_TOKEN,
+      environment: process.env.SQUARE_ENVIRONMENT === 'production' 
+        ? SquareEnvironment.Production 
+        : SquareEnvironment.Sandbox,
+      token: auth.accessToken,
     });
+    
+    // Use location from database if not provided
+    const finalLocationId = locationId || auth.locationId;
+    
 
     // Calculate order total (items only) for comparison
     const calculatedOrderTotal = orderDetails.items.reduce((total, item) => {

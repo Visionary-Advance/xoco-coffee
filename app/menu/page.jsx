@@ -1,6 +1,6 @@
 
 
-export default function Menu(){
+export default function MenuPage(){
 
 
 
@@ -16,37 +16,44 @@ export default function Menu(){
 
 
 
+
+
+
+
 // 'use client';
 
 // import { useState, useEffect } from 'react';
 // import ClientWrapper from '@/Components/ClientWrapper';
+// import Button from '@/Components/Button';
 
 // export default function MenuPage() {
 //   const [items, setItems] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState(null);
+//   const [displayCount, setDisplayCount] = useState(12);
 
+//   useEffect(() => {
+//     const fetchItems = async () => {
+//       try {
+//         const response = await fetch('/api/square-items');
+//         if (!response.ok) {
+//           throw new Error(`HTTP error! status: ${response.status}`);
+//         }
+//         const data = await response.json();
+//         setItems(data.items || []);
+//         setLoading(false);
+//       } catch (err) {
+//         setError(err);
+//         setLoading(false);
+//       }
+//     };
 
-  
-//  useEffect(() => {
-//        const fetchItems = async () => {
-//          try {
-//            const response = await fetch('/api/square-items');
-//            if (!response.ok) {
-//              throw new Error(`HTTP error! status: ${response.status}`);
-//            }
-//            const data = await response.json();
-//            setItems(data.items || []);
-//            setLoading(false);
-//          } catch (err) {
-//            setError(err);
-//            setLoading(false);
-//          }
-//        };
+//     fetchItems();
+//   }, []);
 
-//        fetchItems();
-//      }, []);
-
+//   const handleLoadMore = () => {
+//     setDisplayCount(prev => prev + 12);
+//   };
 
 //   if (loading) {
 //     return (
@@ -84,9 +91,23 @@ export default function Menu(){
 //     );
 //   }
 
+//   const displayedItems = items.slice(0, displayCount);
+//   const hasMore = displayCount < items.length;
 
-
-//   return <ClientWrapper coffeeShopItems={items} />;
-
-
+//   return (
+//     <div>
+//       <ClientWrapper coffeeShopItems={displayedItems} />
+      
+//       {hasMore && (
+//         <div className="flex justify-center py-8">
+//           <Button 
+//             text="Load More" 
+//             width="px-8 py-3"
+//             color="hover:bg-white bg-[#50311D] hover:text-black text-white"
+//             onClick={handleLoadMore}
+//           />
+//         </div>
+//       )}
+//     </div>
+//   );
 // }

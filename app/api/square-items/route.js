@@ -1,23 +1,45 @@
 import { NextResponse } from 'next/server';
 import { SquareClient, SquareEnvironment } from 'square';
+import { getSquareAuth } from '@/lib/square-auth';
 
 export async function GET() {
   try {
+    // console.log('🔍 Fetching Square items for Xoco...');
+    
+    // Get auth credentials from Supabase
+    const auth = await getSquareAuth();
+    
+    // console.log('✅ Retrieved auth for:', auth.restaurantName);
+    // console.log('📍 Location ID:', auth.locationId);
+    // console.log('🔑 Token expires at:', auth.expiresAt);
+    
+    // Initialize Square client with stored token
     const client = new SquareClient({
-      environment: SquareEnvironment.Sandbox,
-      token: process.env.SQUARE_ACCESS_TOKEN,
+      environment: process.env.SQUARE_ENVIRONMENT === 'production' 
+        ? SquareEnvironment.Production 
+        : SquareEnvironment.Sandbox,
+      token: auth.accessToken,
     });
 
+    // console.log('📡 Fetching catalog from Square...');
+    
     const rawResponse = await client.catalog.list({
       types: "ITEM,IMAGE,CATEGORY,MODIFIER_LIST,MODIFIER",
     });
 
     const result = rawResponse.response?.objects || rawResponse.data || [];
+    
+    // console.log('✅ Retrieved', result.length, 'catalog objects');
 
     const items = result.filter(obj => obj.type === 'ITEM');
     const images = result.filter(obj => obj.type === 'IMAGE');
     const modifierLists = result.filter(obj => obj.type === 'MODIFIER_LIST');
     const modifiers = result.filter(obj => obj.type === 'MODIFIER');
+
+    // console.log('📦 Items:', items.length);
+    // console.log('🖼️ Images:', images.length);
+    // console.log('📝 Modifier Lists:', modifierLists.length);
+    // console.log('🔧 Modifiers:', modifiers.length);
 
     const categoryMap = {};
     result.forEach(obj => {
@@ -62,8 +84,6 @@ export async function GET() {
         name,
         modifiers: modifierObjects
       };
-
-     
     }
 
     const imageMap = {};
@@ -93,12 +113,6 @@ export async function GET() {
         .map(info => modifierMap[info.modifierListId])
         .filter(Boolean);
 
-      // const itemName = item.itemData?.name || 'Unnamed Item';
-    
-      attachedModifierLists.forEach((modList, i) => {
-        console.log(`   [${i}] "${modList.name}" with ${modList.modifiers.length} modifiers`);
-      });
-
       return {
         id: item.id,
         name: item.itemData?.name || 'Unnamed Item',
@@ -112,12 +126,42 @@ export async function GET() {
       };
     });
 
-   
+    // console.log('✅ Processed', filteredItems.length, 'menu items');
 
-    return NextResponse.json({ items: filteredItems });
+    return NextResponse.json({ 
+      items: filteredItems,
+      metadata: {
+        restaurantName: auth.restaurantName,
+        locationId: auth.locationId,
+        itemCount: filteredItems.length
+      }
+    });
 
   } catch (error) {
     console.error('❌ Square API Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    
+    if (error.message.includes('XOCO_CLIENT_ID')) {
+      return NextResponse.json({ 
+        error: 'Configuration Error',
+        message: 'Client ID not configured. Please contact support.',
+        details: error.message 
+      }, { status: 500 });
+    }
+    
+    if (error.message.includes('expired')) {
+      return NextResponse.json({ 
+        error: 'Token Expired',
+        message: 'Square authorization has expired. Please contact Visionary Advance to refresh.',
+        details: error.message 
+      }, { status: 401 });
+    }
+    
+    return NextResponse.json({ 
+      error: 'Failed to fetch menu items',
+      message: error.message 
+    }, { status: 500 });
   }
 }
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';

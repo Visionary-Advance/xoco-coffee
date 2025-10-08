@@ -4,11 +4,12 @@ import FilterMenuBar from "@/Components/FilterMenuBar";
 import CoffeeCard from "@/Components/MenuCard";
 import { useState, useEffect } from "react";
 
-export default function ClientWrapper({ coffeeShopItems }) { // This should match what MenuPage sends
+export default function ClientWrapper({ coffeeShopItems }) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedSizes, setSelectedSizes] = useState({});
   
   // Cart state
+  const [cartItems, setCartItems] = useState([]); // <-- ADD THIS LINE HERE!
  
   // Create a list of unique categories for the filter menu
   const categories = ["All", ...new Set(coffeeShopItems?.map(item => 
@@ -34,11 +35,8 @@ export default function ClientWrapper({ coffeeShopItems }) { // This should matc
     return () => window.removeEventListener('cartUpdated', handleCartUpdate);
   }, []);
 
- 
-
   return (
     <>
-     
       <FilterMenuBar 
         activeCategory={activeCategory} 
         setActiveCategory={setActiveCategory}
@@ -53,8 +51,6 @@ export default function ClientWrapper({ coffeeShopItems }) { // This should matc
           coffeeShopItems={coffeeShopItems}
         />
       </div>
-
-     
     </>
   );
 }

@@ -22,8 +22,8 @@ export default function Checkout() {
 
   const shopStatus = getShopStatus();
 
-  const appId = 'sandbox-sq0idb-6j0gJSljj_EWTNcVUttbnQ';
-  const locationId = 'L3ZBNPD54KQT1';
+  const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID;
+  const locationId = NEXT_PUBLIC_SQUARE_LOCATION_ID;
 
   // Load cart items from localStorage on component mount
   useEffect(() => {

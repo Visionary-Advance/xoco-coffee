@@ -23,7 +23,7 @@ export default function Checkout() {
   const shopStatus = getShopStatus();
 
   const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID;
-  const locationId = NEXT_PUBLIC_SQUARE_LOCATION_ID;
+  const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
 
   // Load cart items from localStorage on component mount
   useEffect(() => {

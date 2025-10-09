@@ -1,5 +1,6 @@
 import { SquareClient, SquareEnvironment } from "square";
 import crypto from "crypto";
+import { getSquareAuth } from "@/lib/square-auth";
 
 function safeStringify(obj) {
   return JSON.stringify(obj, (_, value) =>

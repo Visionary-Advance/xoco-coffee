@@ -72,7 +72,7 @@ export default function LandingAnimation() {
       <div className="lg:w-[60%] w-[95%] flex-grow overflow-hidden rounded-t-[40px]">
         <img
           className="w-full h-full object-cover"
-          src="/Img/Landing.jpg"
+          src="/Img/Landing.webp"
           alt="Coffee shop"
         />
       </div>

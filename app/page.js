@@ -111,11 +111,11 @@ export default function Home() {
             <div>
               <h2 className="font-bold text-5xl libre-bold text-white">About Us</h2>
               <p className="text-white mt-6 lg:w-1/2 lg:ms-auto text-xl">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                in reprehenderit in voluptate velit esse cillum dolore eu
+                Xocolate Coffee Co. is a family-owned cafe bringing Latin-inspired
+                flavors to Eugene, Oregon. Our signature Mexican mocha, made with
+                Abuelita Chocolate, delivers a sweet, nutty, and slightly spicy
+                experience you won't find anywhere else. From homemade bagel
+                sandwiches to fresh pastries, we're your one-stop breakfast spot.
               </p>
               <div className="mt-6">
                 <Link href={"/about"}>

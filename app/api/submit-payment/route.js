@@ -12,19 +12,89 @@ function isShopOpenServer() {
   const now = new Date();
   const currentHour = now.getHours();
   const currentDay = now.getDay();
-  
+
+  // Xocolate Coffee Co. Hours:
+  // Mon-Fri: 6 AM - 2 PM, Sat: 7 AM - 3 PM, Sun: Closed
   const businessHours = {
-    1: { open: 7, close: 20 },  // Monday
-    2: { open: 7, close: 20 },  // Tuesday
-    3: { open: 7, close: 20 },  // Wednesday
-    4: { open: 7, close: 20 },  // Thursday
-    5: { open: 7, close: 20 },  // Friday
-    6: { open: 8, close: 21 },  // Saturday
-    0: { open: 8, close: 18 }   // Sunday
+    0: null,                    // Sunday - Closed
+    1: { open: 6, close: 14 },  // Monday
+    2: { open: 6, close: 14 },  // Tuesday
+    3: { open: 6, close: 14 },  // Wednesday
+    4: { open: 6, close: 14 },  // Thursday
+    5: { open: 6, close: 14 },  // Friday
+    6: { open: 7, close: 15 },  // Saturday
   };
-  
+
   const todayHours = businessHours[currentDay];
+  if (!todayHours) return false; // Closed on Sunday
   return currentHour >= todayHours.open && currentHour < todayHours.close;
+}
+
+/**
+ * Find an active Square Terminal device at the location
+ */
+async function findActiveDevice(client, locationId) {
+  try {
+    const response = await client.devices.list({
+      locationId: locationId,
+    });
+
+    const devices = response.result?.devices || [];
+
+    // Look for an active terminal device
+    const activeDevice = devices.find(d =>
+      d.status === 'ACTIVE' &&
+      (d.product === 'SQUARE_TERMINAL' || d.product === 'SQUARE_REGISTER')
+    );
+
+    return activeDevice;
+  } catch (error) {
+    console.error('Error finding device:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Send a notification to the Square Terminal to alert staff about a paid order
+ * Uses Terminal Actions API with CONFIRMATION type
+ */
+async function notifyTerminal(client, locationId, customerName, itemSummary, orderId) {
+  try {
+    const device = await findActiveDevice(client, locationId);
+
+    if (!device) {
+      console.log('⚠️ No active Square Terminal found for notification');
+      return { success: false, reason: 'NO_DEVICE' };
+    }
+
+    console.log(`📱 Found active device: ${device.id} (${device.product})`);
+
+    // Create a terminal action to show a confirmation/notification on the device
+    const actionResponse = await client.terminal.actions.create({
+      idempotencyKey: crypto.randomUUID(),
+      action: {
+        deviceId: device.id,
+        type: 'CONFIRMATION',
+        deadlineDuration: 'PT5M', // 5 minute timeout
+        confirmationOptions: {
+          title: '🌐 NEW WEBSITE ORDER - PAID',
+          body: `Customer: ${customerName}\n\nItems: ${itemSummary}\n\nOrder ID: ${orderId.slice(-8)}`,
+          agreeButtonText: 'Got it!',
+          disagreeButtonText: 'View Order',
+        },
+      }
+    });
+
+    if (actionResponse.result?.action) {
+      console.log(`🔔 Terminal notification sent: ${actionResponse.result.action.id}`);
+      return { success: true, actionId: actionResponse.result.action.id };
+    }
+
+    return { success: false, reason: 'ACTION_FAILED' };
+  } catch (error) {
+    console.error('Terminal notification error (non-fatal):', error.message);
+    return { success: false, reason: error.message };
+  }
 }
 
 export async function POST(req) {
@@ -174,17 +244,18 @@ export async function POST(req) {
       order: {
         locationId,
         source: {
-          name: paymentMethod === 'online' ? "Website - Online Payment" : "Website"
+          name: "🌐 WEBSITE ORDER - PAID ONLINE"
         },
+        state: "OPEN",
         fulfillments: [
           {
             type: "PICKUP",
-            state: "PROPOSED", 
+            state: "RESERVED", // RESERVED = confirmed/paid, ready to prepare
             pickupDetails: {
               recipient: {
                 displayName: customerName.trim()
               },
-              note: `Customer: ${customerName.trim()}`,
+              note: `🌐 WEBSITE ORDER - PAID ONLINE - ${customerName.trim()}`,
               scheduleType: "ASAP",
             }
           }
@@ -197,7 +268,7 @@ export async function POST(req) {
           customerName: customerName.trim(),
           tipAmount: tipAmount.toString(),
         },
-        orderNote: `Customer: ${customerName.trim()}${tipAmount > 0 ? ` (includes $${(tipAmount / 100).toFixed(2)} tip)` : ''}`,
+        note: `🌐 WEBSITE ORDER - PAID ONLINE\nCustomer: ${customerName.trim()}${tipAmount > 0 ? `\nTip: $${(tipAmount / 100).toFixed(2)}` : ''}`,
       },
       idempotencyKey: crypto.randomUUID(),
     };
@@ -271,7 +342,17 @@ export async function POST(req) {
 
     const finalPaymentAmount = payment.amount_money?.amount || payment.amountMoney?.amount;
 
-   
+    // STEP 3: Notify the Square Terminal about the new paid order
+    let deviceNotified = false;
+    try {
+      const notifyResult = await notifyTerminal(client, locationId, customerName.trim(), itemSummary, orderId);
+      deviceNotified = notifyResult.success;
+      if (deviceNotified) {
+        console.log('✅ Terminal notified about paid order');
+      }
+    } catch (notifyError) {
+      console.error('Terminal notification failed (non-fatal):', notifyError.message);
+    }
 
     return Response.json({
       id: payment.id,

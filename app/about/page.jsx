@@ -10,19 +10,19 @@ export default function About(){
 
   const testimonials = [
     {
-      name: 'Stacy Morgan',
+      name: 'Sarah M.',
       quote:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+        'The Mexican mocha is absolutely incredible! The Abuelita chocolate adds such a unique, warm flavor. This is my new favorite coffee spot in Eugene.',
     },
     {
-      name: 'Carlos Ramirez',
+      name: 'Carlos R.',
       quote:
-        'This company is amazing. The attention to detail and customer care really stand out. Highly recommended!',
+        'Finally, authentic Latin-inspired coffee drinks in Eugene! The homemade bagel sandwiches are amazing too. Analley makes the best bagels in town.',
     },
     {
-      name: 'Jenna Lee',
+      name: 'Jennifer L.',
       quote:
-        'I’ve never had a smoother experience. Everything was top-notch from start to finish!',
+        'Such a cozy, family-owned spot. You can taste the love in every cup. The drinking chocolate with sweet bread is the perfect breakfast treat!',
     },
   ]
 
@@ -67,21 +67,20 @@ export default function About(){
     <div className="flex flex-col md:flex-row items-center gap-10">
       {/* Image */}
       <img
-        src="/Img/Title_1.jpg"
-        alt="Cafe interior"
-        className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-1/2 object-cover"
+        src="/Img/outside.jpg"
+        alt="Cafe Exterior"
+        className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-5/12 object-cover"
       />
       {/* Text */}
       <div className="text-white libre md:w-1/2">
-        <h2 className="text-5xl font-bold mb-4">Title 1</h2>
+        <h2 className="text-5xl font-bold mb-4">Our Story</h2>
         <p className="text-lg leading-relaxed">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-          ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
+          Xocolate Coffee Co. is a locally family-owned coffee shop and cafe
+          in Eugene, Oregon, owned by Jeshua Castellanos and Analley Sanchez.
+          We built our menu around our signature chocolate ganache made with
+          Abuelita Chocolate, a beloved chocolate popular in Mexico. The result
+          is drinks that are sweet, nutty, and slightly spicy - like our famous
+          Mexican mocha that adds a whole new depth of flavor to your morning.
         </p>
       </div>
     </div>
@@ -90,21 +89,20 @@ export default function About(){
     <div className="flex flex-col md:flex-row-reverse items-center gap-10">
       {/* Image */}
       <img
-        src="/Img/Title_2.jpg"
+        src="/Img/Fresh.jpg"
         alt="Coffee closeup"
-        className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-1/2 object-cover"
+        className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-5/12 object-cover"
       />
       {/* Text */}
       <div className="text-white text-right libre md:w-1/2">
-        <h2 className="text-5xl font-bold mb-4">Title 2</h2>
+        <h2 className="text-5xl font-bold mb-4">Fresh & Local</h2>
         <p className="text-lg leading-relaxed">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-          ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
+          We're your one-stop breakfast spot, serving up Latin-inspired drinks
+          alongside made-to-order bagel sandwiches and fresh pastries. Analley
+          makes all of our bagels from scratch daily. Our coffee is locally
+          sourced from Cafeto, roasted right here in Eugene, Oregon. From
+          drinking chocolate and sweet bread to smoothies and lunch items,
+          we have something delicious for everyone.
         </p>
       </div>
     </div>

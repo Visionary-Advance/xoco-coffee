@@ -392,9 +392,9 @@ export default function Checkout() {
             <h3 className="text-xl font-bold mb-4">Pickup Instructions</h3>
             <p className="mb-4">Your order will be available for pickup at our store within 15-20 minutes after confirmation.</p>
             <p className="text-gray-600">
-              Xoco Coffee<br />
-              123 Main Street<br />
-              Anytown, US 12345
+              Xocolate Coffee Co.<br />
+              995 Tyinn St<br />
+              Eugene, OR 97402
             </p>
           </div>
         </div>

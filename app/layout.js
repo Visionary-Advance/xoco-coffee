@@ -41,7 +41,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://xocolatecoffee.com', // Replace with your actual domain
+    url: 'https://xocolatecoffeeco.com',
     siteName: 'Xocolate Coffee Co',
     title: 'Xocolate Coffee Co | Artisan Coffee & Chocolate | Eugene, Oregon',
     description: 'Experience premium artisan coffee and handcrafted chocolate at Xocolate Coffee Co in Eugene, Oregon. Locally roasted organic coffee, delicious pastries, and warm atmosphere.',
@@ -61,7 +61,7 @@ export const metadata = {
     title: 'Xocolate Coffee Co | Artisan Coffee & Chocolate | Eugene, Oregon',
     description: 'Experience premium artisan coffee and handcrafted chocolate at Xocolate Coffee Co in Eugene, Oregon.',
     images: ['/og-image.jpg'], // Add your actual image path
-    creator: '@xocolatecoffeeco', // Replace with actual Twitter handle if available
+    creator: '@xocolatecoffeeco',
     site: '@xocolatecoffeeco',
   },
 
@@ -110,7 +110,7 @@ const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'CafeOrCoffeeShop',
   name: 'Xocolate Coffee Co',
-  image: 'https://xocolatecoffeeco.com/Xocolate_Coffee_Co_Logo.png', // Replace with actual image URL
+  image: 'https://xocolatecoffeeco.com/Xocolate_Coffee_Co_Logo.png',
   '@id': 'https://xocolatecoffeeco.com',
   url: 'https://xocolatecoffeeco.com',
   telephone: '+1-541-684-0066', 

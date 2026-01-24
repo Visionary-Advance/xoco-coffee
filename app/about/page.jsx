@@ -67,7 +67,7 @@ export default function About(){
     <div className="flex flex-col md:flex-row items-center gap-10">
       {/* Image */}
       <img
-        src="/Img/outside.jpg"
+        src="/Img/Outside.jpg"
         alt="Cafe Exterior"
         className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-5/12 object-cover"
       />

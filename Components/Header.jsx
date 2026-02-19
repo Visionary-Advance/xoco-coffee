@@ -85,11 +85,13 @@ export default function Header() {
       {/* Mobile/Tablet */}
       <div className="md:hidden px-4 mx-5 flex justify-between items-center w-full">
         {/* Left: Logo */}
-        <img
-          src="/Img/Xocolate_Coffee_Co_Logo.png"
-          alt="Xocolate Coffee Co. Logo"
-          className="w-[60px]"
-        />
+        <Link href="/">
+          <img
+            src="/Img/Xocolate_Coffee_Co_Logo.png"
+            alt="Xocolate Coffee Co. Logo"
+            className="w-[60px]"
+          />
+        </Link>
 
         {/* Center: Cart */}
         <motion.span
@@ -123,8 +125,8 @@ export default function Header() {
             <Link href="/events" onClick={toggleMenu}>Events</Link>
             <Link href="/about" onClick={toggleMenu}>About</Link>
             <Link href="/contact" onClick={toggleMenu}>Contact</Link>
-            <Link href={"/menu"}>
-            <Button color={"bg-white"} text="Order Now" />
+            <Link href="/menu" onClick={toggleMenu}>
+              <Button color={"bg-white"} text="Order Now" width={"px-6 py-2"} />
             </Link>
           </motion.nav>
         )}
@@ -132,11 +134,13 @@ export default function Header() {
 
       {/* Center logo stays for desktop */}
       <div className="hidden md:block absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <img
-          src="/Img/Xocolate_Coffee_Co_Logo.png"
-          alt="Xocolate Coffee Co. Logo"
-          className="w-[80px]"
-        />
+        <Link href="/">
+          <img
+            src="/Img/Xocolate_Coffee_Co_Logo.png"
+            alt="Xocolate Coffee Co. Logo"
+            className="w-[80px]"
+          />
+        </Link>
       </div>
       
       <Cart

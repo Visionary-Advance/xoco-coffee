@@ -156,7 +156,7 @@ export default function Home() {
 
       {/* Bottom content section (blends with wave) */}
       <section className="bg-[#806248] -mt-36 pb-48 lg:pb-32" style={{ position: "relative", zIndex: 10 }}>
-        <div className="translate-y-[10%] place-items-center">
+        <div className="translate-y-[10%] flex flex-col items-center">
           <img className="w-80" src="/Img/Sunburst.png" alt="Sunburst decoration" />
           <h2 className="libre text-5xl mt-4 text-[#D4CABC]">Our Menu</h2>
           
@@ -201,7 +201,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="z-50">
+          <div className="z-50 text-center">
             <Link href={"/menu"}>
               <Button color={"bg-white"} text={"Order Now"} width={"px-1 py-2"} />
             </Link>

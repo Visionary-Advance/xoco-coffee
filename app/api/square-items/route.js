@@ -128,12 +128,16 @@ export async function GET() {
 
     // console.log('✅ Processed', filteredItems.length, 'menu items');
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       items: filteredItems,
       metadata: {
         restaurantName: auth.restaurantName,
         locationId: auth.locationId,
         itemCount: filteredItems.length
+      }
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       }
     });
 

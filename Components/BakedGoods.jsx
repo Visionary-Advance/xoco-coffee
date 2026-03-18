@@ -12,9 +12,9 @@ export default function BakedGoods(){
     const borderImageWidth = 16; 
 
     const bakedGoods = [
-        {name: "Homemade Bagels", price:"$4", description:"A flaky, buttery pastry with a golden, crisp exterior and soft layers inside", img: "/Img/Bagel.webp"},
-        {name: "Concha", price:"$3.50", description:"A variety of sweet, fluffy pastries like conchas, that pair perfect with coffee", img: "/Img/Sweet_Bread.webp"},
-        {name: "Banana Nut Bread", price:"$4", description:"A rich, layered pastry filled with fruit, cream cheese, or custard with a light glaze", img: "/Img/Banana_Nut_Bread.webp"},
+        {name: "Chocolate Croissant", description:"Pan au Chocolat also known as a Chocolate Croissant! A flaky, buttery croissant filled with chocolate", img: "/Img/Chocolate_Croissant.webp"},
+        {name: "Concha",  description:"A variety of sweet, fluffy pastries like conchas, that pair perfect with coffee", img: "/Img/Sweet_Bread.webp"},
+        {name: "Cheese Danish",  description:"These are cheese danishes! A creamy and sweet cream cheese filling in a flaky housemade pastry crust", img: "/Img/Cheese_Danish.webp"},
     ]
   
     useEffect(() => {
@@ -62,7 +62,7 @@ export default function BakedGoods(){
       src={item.img}
     />
     <h4 className="text-white lg:text-[28px] text-[23px] libre-bold mt-5 mb-2 w-full">
-      {item.name} - {item.price}
+      {item.name}
     </h4>
     <p className="lg:text-lg libre  w-full text-white">
       {item.description}

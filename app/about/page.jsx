@@ -67,7 +67,7 @@ export default function About(){
     <div className="flex flex-col md:flex-row items-center gap-10">
       {/* Image */}
       <img
-        src="/Img/Outside.jpg"
+        src="/Img/DSC02166.jpg"
         alt="Cafe Exterior"
         className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-5/12 object-cover"
       />
@@ -89,9 +89,9 @@ export default function About(){
     <div className="flex flex-col md:flex-row-reverse items-center gap-10">
       {/* Image */}
       <img
-        src="/Img/Fresh.jpg"
+        src="/Img/DSC02130.jpg"
         alt="Coffee closeup"
-        className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-5/12 object-cover"
+        className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full h-{400} md:w-5/12 object-cover"
       />
       {/* Text */}
       <div className="text-white text-right libre md:w-1/2">

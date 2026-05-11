@@ -78,7 +78,7 @@ export default function Contact() {
         {/* Image Container */}
         <div className="rounded-[30px] order-2 lg:order-1 overflow-hidden shadow-[8px_8px_0_#806248] h-full">
           <img
-            src="/Img/AboutPage_Img.jpg"
+            src="/Img/DSC02120.jpg"
             alt="Cafe"
             className="w-full h-full object-cover"
           />

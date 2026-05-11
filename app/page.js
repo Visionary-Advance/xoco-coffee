@@ -67,9 +67,9 @@ export default function Home() {
         <div className="flex flex-wrap items-center w-full mx-auto">
           <div className="py-4 w-full lg:w-1/2">
             <img
-              src="/Img/Try.webp"
+              src="/Img/DSC02106.jpg"
               alt="Latte art"
-              className="rounded-[30px] w-80 h-80 lg:w-[400px] lg:h-[400px] object-cover shadow-[8px_8px_0_#86654B] mx-auto lg:mx-0 lg:ms-auto"
+              className="rounded-[30px] w-80 h-80 lg:w-[400px] lg:h-auto object-cover shadow-[8px_8px_0_#86654B] mx-auto lg:mx-0 lg:ms-auto"
             />
           </div>
 
@@ -127,9 +127,9 @@ export default function Home() {
 
           <div className="p-4 w-full md:w-1/2 order-1 md:order-2">
             <img
-              src="/Img/About_Img.jpg"
+              src="/Img/DSC01951.jpg"
               alt="Coffee beans"
-              className="rounded-[30px] w-80 h-80 lg:w-[400px] lg:h-[400px] object-cover shadow-[8px_8px_0_#86654B] mx-auto lg:mx-0 lg:me-auto"
+              className="rounded-[30px] w-80 h-80 lg:w-[400px] lg:h-auto object-cover shadow-[8px_8px_0_#86654B] mx-auto lg:mx-0 lg:me-auto"
             />
           </div>
         </div>

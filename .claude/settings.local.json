@@ -3,7 +3,14 @@
     "allow": [
       "Bash(npm run build:*)",
       "Bash(file \"C:/Users/brand/websites/xoco-coffee/public/Img/DSC01953.jpg\")",
-      "Bash(powershell -Command \"Get-ItemProperty 'C:/Users/brand/websites/xoco-coffee/public/Img/DSC01953.jpg' | Select-Object Length\")"
+      "Bash(powershell -Command \"Get-ItemProperty 'C:/Users/brand/websites/xoco-coffee/public/Img/DSC01953.jpg' | Select-Object Length\")",
+      "Bash(curl -s -H \"Authorization: IhITNhIADg8WvXpPdrc2116JE9RNEJAtrg1TbSHPCok3Sc43D441tL3e\" \"https://api.pexels.com/v1/search?query=cozy+coffee+shop+interior+warm&per_page=8&orientation=landscape\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(p['id'], '|', p['photographer'], '|', p['src']['large2x'], '|', p.get\\('alt',''\\)[:80]\\) for p in d['photos']]\")",
+      "PowerShell($headers = @{ Authorization = \"IhITNhIADg8WvXpPdrc2116JE9RNEJAtrg1TbSHPCok3Sc43D441tL3e\" }; $r = Invoke-RestMethod -Uri \"https://api.pexels.com/v1/search?query=cozy+coffee+shop+interior+warm&per_page=8&orientation=landscape\" -Headers $headers; $r.photos | ForEach-Object { \"{0} | {1} | {2} | {3}\" -f $_.id, $_.photographer, $_.src.large2x, \\($_.alt.Substring\\(0, [Math]::Min\\(80, $_.alt.Length\\)\\)\\) })",
+      "PowerShell($headers = @{ Authorization = \"IhITNhIADg8WvXpPdrc2116JE9RNEJAtrg1TbSHPCok3Sc43D441tL3e\" }; $r = Invoke-RestMethod -Uri \"https://api.pexels.com/v1/search?query=barista+espresso+latte+art+pour&per_page=8&orientation=landscape\" -Headers $headers; $r.photos | ForEach-Object { \"{0} | {1} | {2} | {3}\" -f $_.id, $_.photographer, $_.src.large2x, \\($_.alt.Substring\\(0, [Math]::Min\\(80, $_.alt.Length\\)\\)\\) })",
+      "PowerShell(Invoke-WebRequest -Uri \"https://images.pexels.com/photos/12570668/pexels-photo-12570668.jpeg?auto=compress&cs=tinysrgb&w=1920\" -OutFile \"C:\\\\Users\\\\brand\\\\websites\\\\xoco-coffee\\\\public\\\\Img\\\\AboutHeader.jpg\"; Get-ChildItem \"C:\\\\Users\\\\brand\\\\websites\\\\xoco-coffee\\\\public\\\\Img\\\\AboutHeader.jpg\" | Select-Object Name, Length)",
+      "PowerShell($headers = @{ Authorization = \"IhITNhIADg8WvXpPdrc2116JE9RNEJAtrg1TbSHPCok3Sc43D441tL3e\" }; $r = Invoke-RestMethod -Uri \"https://api.pexels.com/v1/search?query=coffee+cup+beans+rustic+wooden&per_page=10&orientation=landscape\" -Headers $headers; $r.photos | ForEach-Object { \"{0} | {1} | {2}\" -f $_.id, $_.src.large2x, \\($_.alt.Substring\\(0, [Math]::Min\\(90, $_.alt.Length\\)\\)\\) })",
+      "PowerShell(Invoke-WebRequest -Uri \"https://images.pexels.com/photos/2456429/pexels-photo-2456429.jpeg?auto=compress&cs=tinysrgb&w=1920\" -OutFile \"C:\\\\Users\\\\brand\\\\websites\\\\xoco-coffee\\\\public\\\\Img\\\\AboutHeader.jpg\"; \\(Get-Item \"C:\\\\Users\\\\brand\\\\websites\\\\xoco-coffee\\\\public\\\\Img\\\\AboutHeader.jpg\"\\).Length)"
     ]
   }
 }

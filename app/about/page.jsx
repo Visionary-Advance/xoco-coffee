@@ -48,8 +48,8 @@ export default function About(){
         <div className="relative w-11/12 mx-auto h-60 lg:h-96 rounded-[30px] overflow-hidden mt-10 shadow-[8px_8px_0_#806248]">
   {/* Image */}
   <img
-    src="/Img/AboutPage_Img.jpg"
-    alt="Picture of the cafe"
+    src="/Img/AboutHeader.jpg"
+    alt="Warm and inviting rustic coffee shop interior"
     className="w-full h-full object-cover"
   />
 

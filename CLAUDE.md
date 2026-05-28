@@ -67,9 +67,10 @@ npm run lint     # Run Next.js linting
   - Online orders: Sends confirmation action notification to the device
 
 ### Business Hours
-- Defined in `lib/businessHours.js` (also duplicated in API routes for server-side checks)
-- `isShopOpen()` and `getShopStatus()` functions gate order submissions
-- Mon-Fri: 6 AM - 2 PM, Sat: 7 AM - 3 PM, Sunday: Closed
+- **Storefront hours:** Mon-Fri 6 AM - 2 PM, Sat 7 AM - 3 PM, Sun closed.
+- **Online ordering window (narrower):** Mon-Sat 7 AM - 1 PM Pacific, Sun closed.
+- `isShopOpen()` / `getShopStatus()` in `lib/businessHours.js` gate the online ordering UI and are duplicated in `app/api/submit-order/route.js` and `app/api/submit-payment/route.js` for server-side checks.
+- All checks compute the current hour/day in `America/Los_Angeles` via `Intl.DateTimeFormat` — do NOT use `new Date().getHours()` directly, since Vercel runs in UTC and that bug previously blocked nearly all orders.
 
 ## Environment Variables
 

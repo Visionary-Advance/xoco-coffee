@@ -9,25 +9,22 @@ function safeStringify(obj) {
 }
 
 function isShopOpenServer() {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentDay = now.getDay();
+  // Online ordering window: 7 AM - 1 PM Pacific, Mon-Sat. Sunday closed.
+  // Compute hour/day in Pacific time so Vercel's UTC server doesn't gate
+  // orders against the wrong clock.
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    weekday: 'short',
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date());
 
-  // Xocolate Coffee Co. Hours:
-  // Mon-Fri: 6 AM - 2 PM, Sat: 7 AM - 3 PM, Sun: Closed
-  const businessHours = {
-    0: null,                    // Sunday - Closed
-    1: { open: 6, close: 14 },  // Monday
-    2: { open: 6, close: 14 },  // Tuesday
-    3: { open: 6, close: 14 },  // Wednesday
-    4: { open: 6, close: 14 },  // Thursday
-    5: { open: 6, close: 14 },  // Friday
-    6: { open: 7, close: 15 },  // Saturday
-  };
+  const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const currentHour = parseInt(parts.find(p => p.type === 'hour').value, 10);
+  const currentDay = weekdayMap[parts.find(p => p.type === 'weekday').value];
 
-  const todayHours = businessHours[currentDay];
-  if (!todayHours) return false; // Closed on Sunday
-  return currentHour >= todayHours.open && currentHour < todayHours.close;
+  if (currentDay === 0) return false;
+  return currentHour >= 7 && currentHour < 13;
 }
 
 /**

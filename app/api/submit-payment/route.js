@@ -247,7 +247,7 @@ export async function POST(req) {
         fulfillments: [
           {
             type: "PICKUP",
-            state: "RESERVED", // RESERVED = confirmed/paid, ready to prepare
+            state: "PROPOSED", // Fulfillments must be created as PROPOSED or HELD; advance later if needed
             pickupDetails: {
               recipient: {
                 displayName: customerName.trim()

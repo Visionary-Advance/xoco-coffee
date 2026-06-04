@@ -8,7 +8,12 @@ function safeStringify(obj) {
   );
 }
 
+// MANUAL KILL SWITCH: keep in sync with lib/businessHours.js. When true,
+// online ordering is turned off entirely regardless of the time of day.
+const ONLINE_ORDERING_DISABLED = true;
+
 function isShopOpenServer() {
+  if (ONLINE_ORDERING_DISABLED) return false;
   // Online ordering window: 7 AM - 1 PM Pacific, Mon-Sat. Sunday closed.
   // Compute hour/day in Pacific time so Vercel's UTC server doesn't gate
   // orders against the wrong clock.

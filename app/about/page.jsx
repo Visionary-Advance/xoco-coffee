@@ -67,9 +67,9 @@ export default function About(){
     <div className="flex flex-col md:flex-row items-center gap-10">
       {/* Image */}
       <img
-        src="/Img/DSC02166.jpg"
-        alt="Cafe Exterior"
-        className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-5/12 object-cover"
+        src="/Img/Owners.jpeg"
+        alt="Jeshua Castellanos and Analley Sanchez, owners of Xocolate Coffee Co."
+        className="rounded-[30px] shadow-[8px_8px_0_#806248] w-full md:w-5/12 md:h-[448px] object-cover"
       />
       {/* Text */}
       <div className="text-white libre md:w-1/2">

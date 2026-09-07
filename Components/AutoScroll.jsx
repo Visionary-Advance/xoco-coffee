@@ -3,7 +3,7 @@
 import Image from 'next/image';
 
 const AutoScrollCarousel = () => {
-  const images = ['DSC02093.jpg', 'DSC02178.jpg', 'DSC01953.jpg', 'DSC02040.jpg', 'DSC01951.jpg', 'DSC02130.jpg', 'DSC02098.jpg', 'DSC02147.jpg', 'DSC02023.jpg', 'DSC02028.jpg'];
+  const images = ['DSC02093.jpg', 'DSC02178.jpg', 'DSC01953.jpg', 'DSC02040.jpg', 'DSC01951.jpg', 'DSC02130.jpg', 'DSC02098.jpg', 'DSC02147.jpg', 'DSC02023.jpg', 'DSC02028.jpg', 'Eggs_Image.jpeg'];
 
   return (
     <div className="relative overflow-hidden -mb-16 px-6 z-10">
@@ -33,7 +33,7 @@ const AutoScrollCarousel = () => {
           }
           to {
             /* Move by exactly the width of one complete set including gaps */
-            transform: translateX(calc(-356px * 8));
+            transform: translateX(calc(-356px * 11));
           }
         }
       `}</style>

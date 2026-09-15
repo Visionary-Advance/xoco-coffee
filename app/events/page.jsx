@@ -24,7 +24,7 @@ export default function Events(){
         {/* CARDS */}
 
 
-        <div className="libre mt-10 mb-20 rounded-xl p-6 flex flex-col md:flex-row gap-6 max-w-5xl w-11/12 mx-auto items-stretch">
+        <div className="libre mt-10 rounded-xl p-6 flex flex-col md:flex-row gap-6 max-w-5xl w-11/12 mx-auto items-stretch">
   {/* Left image */}
   <div className="w-full md:w-1/3 flex">
     <img
@@ -51,6 +51,38 @@ export default function Events(){
     <div>
       <p className="text-white ">June 28</p>
       <p className="text-white">12PM–6PM</p>
+    </div>
+  </div>
+</div>
+
+
+<div className="libre mt-10 mb-20 rounded-xl p-6 flex flex-col md:flex-row gap-6 max-w-5xl w-11/12 mx-auto items-stretch">
+  {/* Left image */}
+  <div className="w-full md:w-1/3 flex">
+    <img
+      src='/Img/About_Img.png'
+      alt="Cafe y Musica"
+      className="rounded-xl object-cover w-full h-full"
+    />
+  </div>
+
+  {/* Right text content */}
+  <div className="flex flex-col justify-between text-white w-full">
+  <span className="inline-block border border-white rounded-full px-3 py-1 text-sm text-white mb-2 self-start">
+  Music
+</span>
+
+    <h2 className="text-3xl font-bold text-white mb-2">
+      Cafe y Musica
+    </h2>
+
+    <p className="text-white mb-4">
+      Join us for an evening of live music at XOCO Coffee. Sip our signature Mexican Mocha alongside our in-house baked goods while local musicians fill the cafe with sound.
+    </p>
+
+    <div>
+      <p className="text-white ">September 27</p>
+      <p className="text-white">Time TBA</p>
     </div>
   </div>
 </div>

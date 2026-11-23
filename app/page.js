@@ -8,12 +8,14 @@ import { BiSolidCoffeeBean } from "react-icons/bi";
 import Button from "@/Components/Button";
 import BakedGoods from "@/Components/BakedGoods";
 import Link from "next/link";
+import { MENU_ENABLED } from "@/lib/siteConfig";
 
 export default function Home() {
   const [drinks, setDrinks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!MENU_ENABLED) return;
     const fetchItems = async () => {
       try {
         const response = await fetch('/api/square-items');
@@ -135,6 +137,7 @@ export default function Home() {
         </div>
       </section>
 
+      {MENU_ENABLED && (<>
       <div className="w-full overflow-hidden z-50 rotate-180" style={{ height: "160px", position: "relative" }}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -208,6 +211,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </>)}
 
       <section className="">
         <BakedGoods />

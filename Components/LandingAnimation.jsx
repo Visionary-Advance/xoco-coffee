@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Button from './Button';
 import Link from 'next/link';
+import { MENU_ENABLED } from "@/lib/siteConfig";
 
 export default function LandingAnimation() {
   return (
@@ -61,11 +62,13 @@ export default function LandingAnimation() {
           Join us for a cup of locally roasted and organic coffee, delicious
           pastries, and a warm atmosphere.
         </p>
+        {MENU_ENABLED && (
         <div className="my-6">
           <Link href={'/menu'}>
           <Button color={"bg-white"} text="Order Now" width={"px-1 py-2"} />
           </Link>
         </div>
+        )}
       </motion.div>
 
       {/* Bottom Image */}

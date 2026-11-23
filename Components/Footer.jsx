@@ -2,6 +2,7 @@ import AutoScrollCarousel from "./AutoScroll";
 import { FaInstagram, FaFacebookF  } from "react-icons/fa";
 import Button from "./Button";
 import Link from "next/link";
+import { MENU_ENABLED } from "@/lib/siteConfig";
 
 export default function Footer(){
     return(
@@ -51,12 +52,12 @@ export default function Footer(){
     </div>
 
     {/* Order Section */}
-    <div className="bg-[#A5907B] text-white w-8/12 mx-auto shadow-[8px_8px_0_#E6D5B8] p-6 rounded-[30px] libre flex flex-col items-center justify-center">
+    {MENU_ENABLED && <div className="bg-[#A5907B] text-white w-8/12 mx-auto shadow-[8px_8px_0_#E6D5B8] p-6 rounded-[30px] libre flex flex-col items-center justify-center">
       <h4 className="text-2xl font-bold mb-3 text-center">Ready to Get Started?</h4>
       <Link href={"/menu"}>
       <Button text={"Order Now"} width={"px-1 py-2"} color={'bg-white'}/>
       </Link>
-    </div>
+    </div>}
 
   </div>
 </footer>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Button from "./Button";
 import Link from "next/link";
+import { MENU_ENABLED } from "@/lib/siteConfig";
 
 
 export default function BakedGoods(){
@@ -71,11 +72,11 @@ export default function BakedGoods(){
 ))}
 
   </div>
-  <div className="mb-5 flex justify-center">
+  {MENU_ENABLED && <div className="mb-5 flex justify-center">
     <Link href={"/menu"}>
   <Button color={"bg-white"} text={"Order Now"} width={"px-1 py-2"} />
   </Link>
-  </div>
+  </div>}
 </div>
 
       <div className="flex justify-center w-full overflow-hidden">

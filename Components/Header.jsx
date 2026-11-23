@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { IoMenu, IoClose  } from "react-icons/io5";
 import Button from './Button'
 import Cart from './Cart';
+import { MENU_ENABLED } from "@/lib/siteConfig";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -20,6 +21,7 @@ export default function Header() {
 
   // Fetch Square items for cart editing
   useEffect(() => {
+    if (!MENU_ENABLED) return;
     const fetchSquareItems = async () => {
       try {
         const response = await fetch('/api/square-items');
@@ -60,11 +62,12 @@ export default function Header() {
       <div className="hidden md:flex px-4 mx-5 items-center justify-between w-full">
         <nav className="flex space-x-6 text-lg libre-bold">
           <Link href="/">Home</Link>
-          <Link href="/menu">Menu</Link>
+          {MENU_ENABLED && <Link href="/menu">Menu</Link>}
           <Link href="/events">Events</Link>
           <Link href="/about">About</Link>
           <Link href="/contact">Contact</Link>
         </nav>
+        {MENU_ENABLED && (
         <div className="flex items-center libre space-x-8">
         <motion.span
   className="text-lg cursor-pointer hover:text-[#d9c3a0]"
@@ -80,6 +83,7 @@ export default function Header() {
           <Button color={"bg-white"} text={"Order Now"} width={"px-1 py-2"} />
           </Link>
         </div>
+        )}
       </div>
 
       {/* Mobile/Tablet */}
@@ -94,6 +98,7 @@ export default function Header() {
         </Link>
 
         {/* Center: Cart */}
+        {MENU_ENABLED && (
         <motion.span
   className="text-lg cursor-pointer hover:text-[#d9c3a0]"
   onClick={toggleCart}
@@ -104,6 +109,7 @@ export default function Header() {
 >
   Cart({cartItems.reduce((acc, item) => acc + item.quantity, 0)})
 </motion.span>
+        )}
         {/* Right: Hamburger */}
         <button onClick={toggleMenu} aria-label="Toggle menu">
           {menuOpen ? <IoClose size={28} /> : <IoMenu size={28} />}
@@ -121,13 +127,15 @@ export default function Header() {
             className="absolute top-full left-0 w-full bg-[#50311D] flex flex-col items-center py-6 z-50 space-y-6 text-lg libre-bold md:hidden"
           >
             <Link href="/" onClick={toggleMenu}>Home</Link>
-            <Link href="/menu" onClick={toggleMenu}>Menu</Link>
+            {MENU_ENABLED && <Link href="/menu" onClick={toggleMenu}>Menu</Link>}
             <Link href="/events" onClick={toggleMenu}>Events</Link>
             <Link href="/about" onClick={toggleMenu}>About</Link>
             <Link href="/contact" onClick={toggleMenu}>Contact</Link>
+            {MENU_ENABLED && (
             <Link href="/menu" onClick={toggleMenu}>
               <Button color={"bg-white"} text="Order Now" width={"px-6 py-2"} />
             </Link>
+            )}
           </motion.nav>
         )}
       </AnimatePresence>
@@ -143,6 +151,7 @@ export default function Header() {
         </Link>
       </div>
       
+      {MENU_ENABLED && (
       <Cart
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -150,6 +159,7 @@ export default function Header() {
         setCartItems={setCartItems}
         getFullItemData={getFullItemData} // Add the missing prop
       />
+      )}
     </header>
   )
 }

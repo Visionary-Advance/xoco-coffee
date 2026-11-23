@@ -31,7 +31,21 @@ export async function GET() {
     
     // console.log('✅ Retrieved', result.length, 'catalog objects');
 
-    const items = result.filter(obj => obj.type === 'ITEM');
+    // Square's catalog.list returns archived items and items that were removed
+    // from this location too. "Removing" an item in the Square dashboard usually
+    // archives it or unchecks the location rather than deleting it, so filter here.
+    const isAtLocation = (obj) => {
+      if (obj.presentAtLocationIds?.includes(auth.locationId)) return true;
+      if (obj.presentAtAllLocations === false) return false;
+      return !obj.absentAtLocationIds?.includes(auth.locationId);
+    };
+
+    const items = result.filter(obj =>
+      obj.type === 'ITEM' &&
+      !obj.isDeleted &&
+      !obj.itemData?.isArchived &&
+      isAtLocation(obj)
+    );
     const images = result.filter(obj => obj.type === 'IMAGE');
     const modifierLists = result.filter(obj => obj.type === 'MODIFIER_LIST');
     const modifiers = result.filter(obj => obj.type === 'MODIFIER');
@@ -95,7 +109,9 @@ export async function GET() {
       const imageId = item.itemData?.imageIds?.[0];
       const categoryId = item.itemData?.categories?.[0]?.id;
 
-      const variations = (item.itemData?.variations || []).map(v => {
+      const variations = (item.itemData?.variations || [])
+        .filter(v => !v.isDeleted && isAtLocation(v))
+        .map(v => {
         const vData = v.itemVariationData;
         return {
           id: v.id,
@@ -124,7 +140,7 @@ export async function GET() {
         variations,
         modifiers: attachedModifierLists,
       };
-    });
+    }).filter(item => item.variations.length > 0);
 
     // console.log('✅ Processed', filteredItems.length, 'menu items');
 
